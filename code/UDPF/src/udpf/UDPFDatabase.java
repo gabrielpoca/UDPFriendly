@@ -2,20 +2,21 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package udpfclient;
+package udpf;
 
 import java.util.ArrayList;
 import udpf.UDPFDatagram;
+import utils.Debug;
 
 /**
  *
  * @author gabrielpoca
  */
-public class DatagramDatabase {
+public class UDPFDatabase {
     
     private ArrayList<UDPFDatagram> database;
     
-    public DatagramDatabase() {
+    public UDPFDatabase() {
         database = new ArrayList<UDPFDatagram>();
     }
     
@@ -25,7 +26,7 @@ public class DatagramDatabase {
     }
     
     public synchronized UDPFDatagram get(int last_index) throws InterruptedException {
-        while(last_index >= database.size() - 1)
+        while(last_index >= database.size())
             wait();
         return database.get(last_index);
     }

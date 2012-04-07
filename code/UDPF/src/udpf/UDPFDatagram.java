@@ -4,11 +4,13 @@
  */
 package udpf;
 
+import java.io.Serializable;
+
 /**
  *
  * @author gabrielpoca
  */
-public class UDPFDatagram {
+public class UDPFDatagram implements Serializable {
 
     public enum UDPF_HEADER_TYPE {
         INFO, /* pacote com informaçao */

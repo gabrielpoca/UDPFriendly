@@ -2,15 +2,17 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package udpfclient;
+package udpf;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Converter;
+import utils.Debug;
 
 /**
  *
@@ -21,10 +23,13 @@ public class UDPFSend extends Thread {
     private InetAddress _addr;
     private int _port;
     private DatagramSocket _socket;
-    private DatagramDatabase _db;
+    
+    private UDPFDatabase _db;
+    
     private boolean _run;
 
-    public UDPFSend(DatagramDatabase db, InetAddress addr, int port) {
+    public UDPFSend(UDPFDatabase db, DatagramSocket socket, InetAddress addr, int port) {
+        _socket = socket;
         _db = db;
         _run = true;
         _addr = addr;
@@ -34,7 +39,7 @@ public class UDPFSend extends Thread {
     @Override
     public void run() {
         try {
-            byte[] send_info = null;
+            byte[] send_info = new byte[1024];
             int i = 0;
             while (_run) {
                 send_info = Converter.objectToBytes(_db.get(i));
@@ -46,6 +51,10 @@ public class UDPFSend extends Thread {
         } catch (IOException ex) {
             Logger.getLogger(UDPFSend.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    public void setPort(int port) {
+        _port = port;
     }
 
     public void stopSend() {

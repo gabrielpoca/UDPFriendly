@@ -4,6 +4,8 @@
  */
 package udpfclient;
 
+import java.net.UnknownHostException;
+import udpf.UDPFSend;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -11,44 +13,63 @@ import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import udpf.UDPFDatabase;
 import udpf.UDPFDatagram;
 import utils.Converter;
+import utils.Debug;
 
 
 class UDPFMain extends Thread {
     
-    public static final int BUFFER_SIZE = 512;
-    
-    public static final int PORT = 9999;
-
-    private DatagramDatabase _db;
-    
-    private DatagramSocket _socket;
+    public static final int BUFFER_SIZE = 512;    
+    public static final int PORT = 9998;
+ 
+    /* Server Information. */
     private InetAddress _addr;
     private int _port;
+
+    /* Local variables. */
+    private DatagramSocket _socket;    
+    private UDPFDatabase _db;
     private UDPFSend _send;
-    
+    private String _file;
+        
     private boolean _run;
 
-    public UDPFMain() throws SocketException {
+    public UDPFMain(String file) throws SocketException, UnknownHostException {
+        // Start socket and database.
         _socket = new DatagramSocket(PORT);
-        _db = new DatagramDatabase();
-        _send = new UDPFSend(_db, _addr, _port);
+        _db = new UDPFDatabase();
+        // Set send
+        _addr = InetAddress.getByName("localhost");
+        _port = 9999;
+        _send = new UDPFSend(_db, _socket, _addr, _port);
+        // Set file
+        _file = file;
+        // Set run
+        _run = true;
     }
 
     @Override
     public void run() {
-        _send.start();
-        //putStartDatagram();
+        // Start SEND
+        Thread t = new Thread(_send);
+        t.start();
+        // SEND FIRST PACKAGE
+        putStartDatagram();
         while(_run) {
             try {
                 byte[] buffer = new byte[BUFFER_SIZE];
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 _socket.receive(receivePacket);
-                UDPFDatagram datagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-                switch(datagram.getType()) {
+                UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
+                Debug.debug("CLIENT: Package Received! "+receiveDatagram.getType().name());
+                switch(receiveDatagram.getType()) {
                     case SYN_ACK: // End Handshake
+                        _port = receivePacket.getPort();
+                        _send.setPort(_port);
                         putEndHandshake();
+                        putFile();
                         break;
                     case FIN_ACK: // End Comunication
                         break;
@@ -60,6 +81,10 @@ class UDPFMain extends Thread {
             }
         }
         _send.stopSend();
+    }
+    
+    public void putFile() {
+        
     }
     
     
@@ -91,8 +116,9 @@ public class UDPFClient {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SocketException {
-        Thread t = new Thread(new UDPFMain());
+    public static void main(String[] args) throws SocketException, UnknownHostException {
+        Thread t = new Thread(new UDPFMain("/Users/gabrielpoca/Projects/UDPFriendly/text.txt"));
         t.start();
     }
+    
 }

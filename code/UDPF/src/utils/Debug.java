@@ -10,6 +10,6 @@ package utils;
  */
 public class Debug {
     public static void debug(String s) {
-        System.out.println("DEBUG:::: "+s);
+        System.out.println("DEBUG:: "+s);
     }
 }
