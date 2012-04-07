@@ -4,6 +4,8 @@
  */
 package udpfclient;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
 import udpf.UDPFSend;
 import java.io.IOException;
@@ -52,10 +54,10 @@ class UDPFMain extends Thread {
 
     @Override
     public void run() {
-        // Start SEND
+        /* Start send. */
         Thread t = new Thread(_send);
         t.start();
-        // SEND FIRST PACKAGE
+        /* Send first package. */
         putStartDatagram();
         while(_run) {
             try {
@@ -66,9 +68,12 @@ class UDPFMain extends Thread {
                 Debug.debug("CLIENT: Package Received! "+receiveDatagram.getType().name());
                 switch(receiveDatagram.getType()) {
                     case SYN_ACK: // End Handshake
+                        /* Update Server Port. */
                         _port = receivePacket.getPort();
                         _send.setPort(_port);
+                        /* End Handshake. */
                         putEndHandshake();
+                        /* Send File. */
                         putFile();
                         break;
                     case FIN_ACK: // End Comunication
@@ -83,10 +88,9 @@ class UDPFMain extends Thread {
         _send.stopSend();
     }
     
-    public void putFile() {
-        
+    public void putFile() throws FileNotFoundException, IOException {
+        byte[] file_info = Converter.filetoBytes(_file);
     }
-    
     
     /**
      * End comunication.
