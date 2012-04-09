@@ -1,0 +1,87 @@
+\documentclass{llncs}
+\usepackage{times}
+% \usepackage[T1]{fontenc}
+
+% Comentar para not MAC Users
+\usepackage[utf8]{inputenc}
+
+\usepackage[portuges]{babel}
+
+\usepackage{a4}
+%\usepackage[margin=3cm,nohead]{geometry}
+\usepackage{epstopdf}
+\usepackage{graphicx}
+\usepackage{fancyvrb}
+\usepackage{amsmath}
+%\renewcommand{\baselinestretch}{1.5}
+
+% Para ter os objectos no sitio que se pretende com o H.
+\usepackage{float}
+
+% Indentar automaticamente
+%\usepackage{indentfirst}
+
+
+\begin{document}
+\mainmatter
+\title{UDP Friendly}
+
+\titlerunning{UDP Friendly}
+
+\author{Gabriel Poça \and Maria Alves \and Tiago Ribeiro}
+
+\authorrunning{Gabriel Poça \and Maria Alves \and Tiago Ribeiro}
+
+\institute{
+University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
+e-mail: \{a56974,a0000,a00000\}@alunos.uminho.pt
+}
+
+\date{}
+\bibliographystyle{splncs}
+
+\maketitle
+%\begin{abstract}
+%\end{abstract}
+
+% Introdução
+\section{Introdução}
+Este documento serve como
+
+\subsection{Tipos de Mensagens}
+\begin{description}
+	\item[SYN] Mensagem para requesitar o establecer de uma ligação com o servidor.
+	\item[SYN\_ACK] Mensagem de resposta ao SYN por parte do servidor.
+	\item[CON\_ACK] Mensagem de resposta ao SYN_ACK por parte do cliente de modo a terminar o establecer da ligação.
+\end{description}
+
+%UNCOMMENT se necessário
+%De acordo com o ilustrado na Figura~\ref{fig:controller}
+%% Exemplo para inserção de uma figura
+%\begin{figure}
+%\begin{center}
+%\includegraphics[scale=0.40]{figura.pdf} 
+%\end{center}
+%\caption{\label{fig:controller}Architecture of the unified QoS metric fuzzy controller.}
+%\end{figure} 
+
+%\section{Simulation Scenario}
+
+\section{Conclusões}
+
+
+%UNCOMMENT para a bibliografia 
+%% ficheirodebibliografia.bib
+%\bibliography{ficheirodebibliografia}
+
+%ou inserir directamente os vários \bibitem 
+
+\begin{thebibliography}{1}
+
+%\bibitem{korea}
+%Jeong Ho Kwaka, Bong Gyou Leeb:
+%\newblock{Estimating demand curve in the Korean VoIP telecommunications market}
+
+\end{thebibliography}
+
+\end{document}

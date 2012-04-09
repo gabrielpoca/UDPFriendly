@@ -4,17 +4,22 @@
  */
 package udpf;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import utils.Converter;
 
 /**
  *
  * @author gabrielpoca
  */
 public class UDPFDatagram implements Serializable {
-    
+
     public static final int MTU = 512;
 
     public enum UDPF_HEADER_TYPE {
+
         INFO, /* pacote com informaçao */
         SYN, /* enviado pelo cliente para iniciar three way handshake */
         SYN_ACK, /* enviado por servidor para confirmar recepcao do SYN */
@@ -23,7 +28,6 @@ public class UDPFDatagram implements Serializable {
         FIN,
         FIN_ACK
     }
-    
     UDPF_HEADER_TYPE _type;
     long _seq_num;
     byte[] _data;
@@ -58,5 +62,12 @@ public class UDPFDatagram implements Serializable {
 
     public void setType(UDPF_HEADER_TYPE _type) {
         this._type = _type;
+    }
+
+    public static UDPFDatagram receivaDatagram(DatagramSocket socket) throws IOException, ClassNotFoundException {
+        byte[] receiveData = new byte[512];
+        DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
+        socket.receive(receivePacket);
+        return (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
     }
 }
