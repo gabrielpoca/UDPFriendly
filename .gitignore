@@ -11,3 +11,5 @@
 /code/UDPFCLient/nbproject/private/
 /code/UDPFCLient/dist/
 /code/UDPFClient/dist/
+*.aux
+*.log
