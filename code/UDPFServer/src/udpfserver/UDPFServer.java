@@ -4,6 +4,9 @@
  */
 package udpfserver;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -27,8 +30,7 @@ class UDPFServerReceiver extends Thread {
     private UDPFDatabase _db;
     private UDPFSend _send;
     private ArrayList<Integer> _ports_used;
-    ArrayList<Long> _sent = new ArrayList<Long>();
-    ArrayList<Long> _confirmed = new ArrayList<Long>();
+
     boolean _run; // while control
     DatagramSocket _socket;
     InetAddress _addrs;
@@ -60,9 +62,13 @@ class UDPFServerReceiver extends Thread {
 		/* Switch. */
 		switch (data.getType()) {
 		    case INFO:
+			File file = Converter.bytestoFile(data.getData(), "file.txt");
+			Debug.debug(readFileAsString(file.getPath()));
+			putACK();
 			break;
 		    case FIN:
 			putEndCommunication();
+			_run = false;
 			break;
 		}
 	    } catch (IOException ex) {
@@ -74,11 +80,32 @@ class UDPFServerReceiver extends Thread {
 	_ports_used.remove(_socket.getPort());
 	_send.stopSend();
     }
+
+    private static String readFileAsString(String filePath) throws java.io.IOException {
+	byte[] buffer = new byte[(int) new File(filePath).length()];
+	BufferedInputStream f = null;
+	try {
+	    f = new BufferedInputStream(new FileInputStream(filePath));
+	    f.read(buffer);
+	} finally {
+	    if (f != null) {
+		try {
+		    f.close();
+		} catch (IOException ignored) {
+		}
+	    }
+	}
+	return new String(buffer);
+    }
     
+    public void putACK() {
+	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.ACK));
+    }
+
     /**
      * Send FIN_ACK.
      */
-    public void putEndCommunication () {
+    public void putEndCommunication() {
 	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK));
     }
 

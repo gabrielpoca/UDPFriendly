@@ -26,6 +26,10 @@ class UDPFMain extends Thread {
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
+    
+    
+    int _sent;
+    int _confirmed; 
 
     /* Local variables. */
     private DatagramSocket _socket;
@@ -49,6 +53,8 @@ class UDPFMain extends Thread {
 	_run = true;
 	// none type waiting.
 	_wait_type = -1;
+	// ACK confirmation
+	_sent = _confirmed = 0;
     }
 
     @Override
@@ -74,9 +80,14 @@ class UDPFMain extends Thread {
 			    _port = receivePacket.getPort();
 			    _send.setPort(_port);   
 			    /* Send File. */
-			    putEndComunication();
+			    putFile();
+			    //putEndComunication();
+			    break;
+			case ACK:
+			    _confirmed++;
 			    break;
 			case FIN_ACK: // End Comunication
+			    _run = false;
 			    break;
 		    }
 		} else {
@@ -93,6 +104,11 @@ class UDPFMain extends Thread {
 
     public void putFile() throws FileNotFoundException, IOException {
 	byte[] file_info = Converter.filetoBytes(_file);
+	UDPFDatagram datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
+	datagram.setData(file_info);
+	datagram.setSeqNum(1);
+	_db.put(datagram);
+	_sent++;
     }
 
     /**
@@ -108,9 +124,6 @@ class UDPFMain extends Thread {
     public void putStartDatagram() {
 	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.SYN));
 
-
-
-
     }
 }
 
@@ -119,8 +132,9 @@ public class UDPFClient {
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SocketException, UnknownHostException {
-	Thread t = new Thread(new UDPFMain("/Users/gabrielpoca/Projects/UDPFriendly/text.txt"));
+    public static void main(String[] args) throws SocketException, UnknownHostException, InterruptedException {
+	Thread t = new Thread(new UDPFMain("/Users/gabrielpoca/Projects/UDPFriendly/code/file.txt"));
 	t.start();
+	t.join();
     }
 }
