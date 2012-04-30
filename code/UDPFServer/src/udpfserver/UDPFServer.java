@@ -5,17 +5,23 @@
 package udpfserver;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import udpf.UDPFDatabase;
+import udpf.UDPFDatabaseFile;
 import utils.Converter;
 import udpf.UDPFDatagram;
 import udpf.UDPFSend;
@@ -27,10 +33,10 @@ import utils.Debug;
  */
 class UDPFServerReceiver extends Thread {
 
+    private UDPFDatabaseFile _db_file;
     private UDPFDatabase _db;
     private UDPFSend _send;
     private ArrayList<Integer> _ports_used;
-
     boolean _run; // while control
     DatagramSocket _socket;
     InetAddress _addrs;
@@ -39,6 +45,7 @@ class UDPFServerReceiver extends Thread {
     public UDPFServerReceiver(DatagramSocket socket, InetAddress addrs, int port, ArrayList<Integer> ports_used) {
 	_ports_used = ports_used;
 	_db = new UDPFDatabase();
+	_db_file = new UDPFDatabaseFile();
 	_socket = socket;
 	_addrs = addrs;
 	_port = port;
@@ -62,8 +69,8 @@ class UDPFServerReceiver extends Thread {
 		/* Switch. */
 		switch (data.getType()) {
 		    case INFO:
-			File file = Converter.bytestoFile(data.getData(), "file.txt");
-			Debug.debug(readFileAsString(file.getPath()));
+			// Store File Datagram
+			_db_file.put(data.getSeqNum(), data);
 			putACK();
 			break;
 		    case FIN:
@@ -77,8 +84,31 @@ class UDPFServerReceiver extends Thread {
 		Logger.getLogger(UDPFServer.class.getName()).log(Level.SEVERE, null, ex);
 	    }
 	}
+	
+	/* Store File */
+	TreeMap<Long, UDPFDatagram> files = _db_file.get();
+	ByteArrayOutputStream output = new ByteArrayOutputStream();
+	for(UDPFDatagram entry : files.values()) {
+	    try {
+		output.write(entry.getData());
+	    } catch (IOException ex) {
+		Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
+	    }
+	}	
+	File file;
+	try {
+	    file = Converter.bytestoFile(output.toByteArray(), "file.txt");
+	    Debug.debug(readFileAsString(file.getPath()));
+	} catch (FileNotFoundException ex) {
+	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (IOException ex) {
+	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
+	}
+	
 	_ports_used.remove(_socket.getPort());
 	_send.stopSend();
+
+
     }
 
     private static String readFileAsString(String filePath) throws java.io.IOException {
@@ -97,7 +127,7 @@ class UDPFServerReceiver extends Thread {
 	}
 	return new String(buffer);
     }
-    
+
     public void putACK() {
 	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.ACK));
     }
@@ -184,7 +214,12 @@ public class UDPFServer extends Thread {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-	Thread t = new Thread(new UDPFServer());
-	t.start();
+	try {
+	    Thread t = new Thread(new UDPFServer());
+	    t.start();
+	    t.join();
+	} catch (InterruptedException ex) {
+	    Logger.getLogger(UDPFServer.class.getName()).log(Level.SEVERE, null, ex);
+	}
     }
 }

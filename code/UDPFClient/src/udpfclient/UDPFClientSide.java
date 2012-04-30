@@ -19,7 +19,7 @@ import udpf.UDPFDatagram;
 import utils.Converter;
 import utils.Debug;
 
-class UDPFMain extends Thread {
+public class UDPFClientSide extends Thread {
 
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
@@ -39,7 +39,7 @@ class UDPFMain extends Thread {
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
 
-    public UDPFMain(String file) throws SocketException, UnknownHostException {
+    public UDPFClientSide(String file) throws SocketException, UnknownHostException {
 	// Start socket and database.
 	_socket = new DatagramSocket(PORT);
 	_db = new UDPFDatabase();
@@ -57,7 +57,7 @@ class UDPFMain extends Thread {
 	_sent = _confirmed = 0;
     }
 
-    @Override
+    
     public void run() {
 	/* Start send. */
 	Thread t = new Thread(_send);
@@ -81,7 +81,7 @@ class UDPFMain extends Thread {
 			    _send.setPort(_port);   
 			    /* Send File. */
 			    putFile();
-			    //putEndComunication();
+			    putEndComunication();
 			    break;
 			case ACK:
 			    _confirmed++;
@@ -125,16 +125,21 @@ class UDPFMain extends Thread {
 	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.SYN));
 
     }
-}
-
-public class UDPFClient {
-
+    
     /**
      * @param args the command line arguments
      */
-    public static void main(String[] args) throws SocketException, UnknownHostException, InterruptedException {
-	Thread t = new Thread(new UDPFMain("/Users/gabrielpoca/Projects/UDPFriendly/code/file.txt"));
-	t.start();
-	t.join();
-    }
+    public static void main(String[] args) {
+	try {
+	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/file.txt"));
+	    t.start();
+	    t.join();
+	} catch (SocketException ex) {
+	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (UnknownHostException ex) {
+	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (InterruptedException ex) {
+	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
+	}
+    }    
 }
