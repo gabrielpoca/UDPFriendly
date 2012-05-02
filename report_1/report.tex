@@ -67,6 +67,7 @@ A comunicação toma inicio com a mensagem \textit{SYN} por parte do client. O s
 O upload do documento é realizado através de mensagens \textit{INFO}. Uma mensagem \textit{INFO} é constituida por informação (conjunto de bytes) e um indicador da posição da respectiva informação na sequencia que constitui o documento enviado.
 
 \subsubsection{Finalizar comunicação}
+A comunicação termina quando o cliente envia a mensagem \textit{FIN}. À qual o servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
 
 %UNCOMMENT se necessário
 %De acordo com o ilustrado na Figura~\ref{fig:controller}
