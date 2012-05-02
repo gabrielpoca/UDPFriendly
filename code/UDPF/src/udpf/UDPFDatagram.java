@@ -23,7 +23,6 @@ public class UDPFDatagram implements Serializable {
         INFO, /* pacote com informaçao */
         SYN, /* enviado pelo cliente para iniciar three way handshake */
         SYN_ACK, /* enviado por servidor para confirmar recepcao do SYN */
-        CON_ACK, /* enviado pelo cliente para finalizar three way handshake */
         ACK, /* confirmar a recepcao de um pacote */
         FIN,
         FIN_ACK

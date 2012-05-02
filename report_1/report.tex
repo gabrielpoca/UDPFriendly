@@ -34,7 +34,7 @@
 
 \institute{
 University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
-e-mail: \{a56974,a0000,a00000\}@alunos.uminho.pt
+e-mail: \{a56974,a0000,a54752\}@alunos.uminho.pt
 }
 
 \date{}
@@ -45,15 +45,28 @@ e-mail: \{a56974,a0000,a00000\}@alunos.uminho.pt
 %\end{abstract}
 
 % Introdução
-\section{Introdução}
-Este documento serve como
+\section{Notas Iniciais}
+Este documento serve como resumo intermédio de trabalho para o projecto prático de Comunicação por Computadores. O documento aborda as metodologias e conceitos adoptados.
 
+\section{Comunicação}
 \subsection{Tipos de Mensagens}
+Cada mensagem tranpsorta diferentes elementos de informação, como uma mensagem INFO que transporta informação do documento a enviar e um indicador da sequência da mesma. Existem seis tipos de mensagens:
 \begin{description}
-	\item[SYN] Mensagem para requesitar o establecer de uma ligação com o servidor.
-	\item[SYN\_ACK] Mensagem de resposta ao SYN por parte do servidor.
-	\item[CON\_ACK] Mensagem de resposta ao SYN_ACK por parte do cliente de modo a terminar o establecer da ligação.
+	\item[SYN] Mensagem inicial para o establecer da comunicação com o servidor.
+	\item[SYN\_ACK] Mensagem de confirmação de SYN.
+	\item[INFO] Mensagem que transporta informação sobre o documento a enviar.
+	\item[ACK] Mensagem de confirmação da recepção de uma mensagem INFO.
+	\item[FIN] Mensagem de final de comunicação.
+	\item[FIN\_ACK] Mensagem de confirmação da recepção de FIN.
 \end{description}
+
+\subsection{Protocolo}
+\subsubsection{Establecer comunicação}
+A comunicação toma inicio com a mensagem \textit{SYN} por parte do client. O servidor recebe a mensagem em determinada porta e envia a resposta, \textit{SYN\_ACK}, por outra. O cliente deve então continuar a comunicação da mesma. Após establecer da comunicação o cliente pode enviar o documento ou terminar a comunicação.
+\subsubsection{Envio do Documento de Texto}
+O upload do documento é realizado através de mensagens \textit{INFO}. Uma mensagem \textit{INFO} é constituida por informação (conjunto de bytes) e um indicador da posição da respectiva informação na sequencia que constitui o documento enviado.
+
+\subsubsection{Finalizar comunicação}
 
 %UNCOMMENT se necessário
 %De acordo com o ilustrado na Figura~\ref{fig:controller}
@@ -65,23 +78,5 @@ Este documento serve como
 %\caption{\label{fig:controller}Architecture of the unified QoS metric fuzzy controller.}
 %\end{figure} 
 
-%\section{Simulation Scenario}
-
-\section{Conclusões}
-
-
-%UNCOMMENT para a bibliografia 
-%% ficheirodebibliografia.bib
-%\bibliography{ficheirodebibliografia}
-
-%ou inserir directamente os vários \bibitem 
-
-\begin{thebibliography}{1}
-
-%\bibitem{korea}
-%Jeong Ho Kwaka, Bong Gyou Leeb:
-%\newblock{Estimating demand curve in the Korean VoIP telecommunications market}
-
-\end{thebibliography}
 
 \end{document}
