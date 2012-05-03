@@ -102,11 +102,9 @@ class UDPFServerReceiver extends Thread {
 	} catch (IOException ex) {
 	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
 	}
-	
-	_ports_used.remove(_socket.getPort());
+	/* Close connection */
+	_ports_used.remove(_port);
 	_send.stopSend();
-
-
     }
 
     private static String readFileAsString(String filePath) throws java.io.IOException {
@@ -147,7 +145,7 @@ class UDPFServerReceiver extends Thread {
 
 public class UDPFServer extends Thread {
 
-    private final int[] PORTS_ALLOWED = {9997, 9996};
+    private final int[] PORTS_ALLOWED = {9997, 9996, 9995};
     private ArrayList<Integer> _ports_used;
 
     public UDPFServer() {

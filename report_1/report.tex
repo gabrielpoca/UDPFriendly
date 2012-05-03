@@ -34,7 +34,7 @@
 
 \institute{
 University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
-e-mail: \{a56974,a0000,a54752\}@alunos.uminho.pt
+e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
 }
 
 \date{}
@@ -46,7 +46,7 @@ e-mail: \{a56974,a0000,a54752\}@alunos.uminho.pt
 
 % Introdução
 \section{Notas Iniciais}
-Este documento serve como resumo intermédio de trabalho para o projecto prático de Comunicação por Computadores. O documento aborda as metodologias e conceitos adoptados.
+Este documento serve como resumo, intermédio, para acompanhamento do projecto prático de Comunicação por Computadores. São abordadas as metodologias e os conceitos adoptados.
 
 \section{Comunicação}
 \subsection{Tipos de Mensagens}
@@ -61,13 +61,16 @@ Cada mensagem tranpsorta diferentes elementos de informação, como uma mensagem
 \end{description}
 
 \subsection{Protocolo}
-\subsubsection{Establecer comunicação}
-A comunicação toma inicio com a mensagem \textit{SYN} por parte do client. O servidor recebe a mensagem em determinada porta e envia a resposta, \textit{SYN\_ACK}, por outra. O cliente deve então continuar a comunicação da mesma. Após establecer da comunicação o cliente pode enviar o documento ou terminar a comunicação.
-\subsubsection{Envio do Documento de Texto}
-O upload do documento é realizado através de mensagens \textit{INFO}. Uma mensagem \textit{INFO} é constituida por informação (conjunto de bytes) e um indicador da posição da respectiva informação na sequencia que constitui o documento enviado.
+\subsubsection{Handshake}
+A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo client. O servidor recebe a mensagem e responde com \textit{SYN\_ACK}. Através da mensagem \textit{SYN\_ACK} o cliente é informado da porta para a qual deverá continuar a comunicação. Establecida a comunicação o cliente pode enviar um documento e terminar a comunicação.
 
-\subsubsection{Finalizar comunicação}
-A comunicação termina quando o cliente envia a mensagem \textit{FIN}. À qual o servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
+\subsubsection{Upload}
+O \textit{upload} é realiza-se através de mensagens \textit{INFO}. Cada mensagem é constituida por informação (conjunto de bytes a enviar para o servidor) e um indicador da posição da mesma informação numa sequencia que constitui o documento.
+
+\subsubsection{Terminar}
+A comunicação termina quando o cliente envia a mensagem \textit{FIN} à qual o servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
+
+\subsection{Timeout e Janela}
 
 %UNCOMMENT se necessário
 %De acordo com o ilustrado na Figura~\ref{fig:controller}
