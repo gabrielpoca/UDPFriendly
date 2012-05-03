@@ -63,7 +63,7 @@ class UDPFServerReceiver extends Thread {
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		_socket.receive(receivePacket);
 		UDPFDatagram data = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.debug("ServerReceiver: Package Received " + data.getType().name());
+		Debug.dump("ServerReceiver: Package Received " + data.getType().name());
 		/* Switch. */
 		switch (data.getType()) {
 		    case INFO:
@@ -96,14 +96,14 @@ class UDPFServerReceiver extends Thread {
 	File file;
 	try {
 	    file = Converter.bytestoFile(output.toByteArray(), "file.txt");
-	    Debug.debug(readFileAsString(file.getPath()));
+	    Debug.dump(readFileAsString(file.getPath()));
 	} catch (FileNotFoundException ex) {
 	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (IOException ex) {
 	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
 	}
 	/* Close connection */
-	_ports_used.remove(_port);
+	_ports_used.remove(new Integer(_port));
 	_send.stopSend();
     }
 
@@ -154,6 +154,7 @@ public class UDPFServer extends Thread {
 
     public void run() {
 	try {
+	    Debug.dump("Server: starting");
 	    DatagramSocket socket = new DatagramSocket(9999);
 	    boolean run = true;
 	    while (run) {
@@ -161,7 +162,7 @@ public class UDPFServer extends Thread {
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		socket.receive(receivePacket);
 		UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.debug("Server: Package Received! " + receiveDatagram.getType().name());
+		Debug.dump("Server: Package Received! " + receiveDatagram.getType().name());
 		switch (receiveDatagram.getType()) {
 		    case SYN:
 			if (_ports_used.size() < PORTS_ALLOWED.length) {
@@ -169,17 +170,19 @@ public class UDPFServer extends Thread {
 			    InetAddress addr = receivePacket.getAddress();
 			    DatagramSocket ds = getNewDatagramSocket();
 			    if (ds != null) {
+				Debug.dump("Server: Adding client on port "+port);
+				_ports_used.add(port);
 				Thread t = new Thread(new UDPFServerReceiver(ds, addr, port, _ports_used));
 				t.start();
 			    } else {
-				throw new NullPointerException("DatagramSocket NULL!");
+				throw new NullPointerException("Server: DatagramSocket NULL!");
 			    }
 			} else {
-			    System.out.print("Max number of connections allowed reached!");
+			    Debug.dump("Server: Max number of connections allowed reached!");
 			}
 			break;
 		    default:
-			System.out.println("Wrong package!");
+			Debug.dump("Server: Wrong package!");
 			break;
 		}
 	    }

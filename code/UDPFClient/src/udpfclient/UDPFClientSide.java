@@ -71,7 +71,7 @@ public class UDPFClientSide extends Thread {
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		_socket.receive(receivePacket);
 		UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.debug("CLIENT: Package Received! " + receiveDatagram.getType().name());
+		Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
 		/* if waiting type is correct or none is waiting. */
 		if (receiveDatagram.getType().ordinal() == _wait_type || _wait_type != -1) {
 		    switch (receiveDatagram.getType()) {

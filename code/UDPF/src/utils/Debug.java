@@ -9,7 +9,7 @@ package utils;
  * @author gabrielpoca
  */
 public class Debug {
-    public static void debug(String s) {
+    public static void dump(String s) {
         System.out.println("DEBUG:: "+s);
     }
 }
