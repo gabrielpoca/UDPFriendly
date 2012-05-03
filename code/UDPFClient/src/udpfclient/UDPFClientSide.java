@@ -6,20 +6,23 @@ package udpfclient;
 
 import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
+import java.util.Observable;
 import udpf.UDPFSend;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import udpf.UDPFDatabase;
 import udpf.UDPFDatagram;
+import udpf.UDPFTimeout;
 import utils.Converter;
 import utils.Debug;
 
-public class UDPFClientSide extends Thread {
+public class UDPFClientSide extends Thread implements Observer {
 
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
@@ -38,6 +41,8 @@ public class UDPFClientSide extends Thread {
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
+    
+    private UDPFTimeout _timeout;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
 	// Start socket and database.
@@ -55,6 +60,10 @@ public class UDPFClientSide extends Thread {
 	_wait_type = -1;
 	// ACK confirmation
 	_sent = _confirmed = 0;
+	
+	// Timeout
+	_timeout = new UDPFTimeout(0);
+	_timeout.addObserver(this);
     }
 
     
@@ -101,6 +110,10 @@ public class UDPFClientSide extends Thread {
 	}
 	_send.stopSend();
     }
+    
+    public void ackTimeout() {
+	
+    }
 
     public void putFile() throws FileNotFoundException, IOException {
 	byte[] file_info = Converter.filetoBytes(_file);
@@ -141,5 +154,10 @@ public class UDPFClientSide extends Thread {
 	} catch (InterruptedException ex) {
 	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	}
-    }    
+    }
+
+    @Override
+    public void update(Observable o, Object o1) {
+	throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
