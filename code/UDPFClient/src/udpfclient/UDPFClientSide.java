@@ -29,10 +29,8 @@ public class UDPFClientSide extends Thread implements Observer {
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
-    
-    
     int _sent;
-    int _confirmed; 
+    int _confirmed;
 
     /* Local variables. */
     private DatagramSocket _socket;
@@ -41,7 +39,6 @@ public class UDPFClientSide extends Thread implements Observer {
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
-    
     private UDPFTimeout _timeout;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
@@ -60,13 +57,12 @@ public class UDPFClientSide extends Thread implements Observer {
 	_wait_type = -1;
 	// ACK confirmation
 	_sent = _confirmed = 0;
-	
+
 	// Timeout
 	_timeout = new UDPFTimeout(0);
 	_timeout.addObserver(this);
     }
 
-    
     public void run() {
 	/* Start send. */
 	Thread t = new Thread(_send);
@@ -87,7 +83,7 @@ public class UDPFClientSide extends Thread implements Observer {
 			case SYN_ACK: // End Handshake
 			    /* Update Server Port. */
 			    _port = receivePacket.getPort();
-			    _send.setPort(_port);   
+			    _send.setPort(_port);
 			    /* Send File. */
 			    putFile();
 			    putEndComunication();
@@ -110,18 +106,31 @@ public class UDPFClientSide extends Thread implements Observer {
 	}
 	_send.stopSend();
     }
-    
+
     public void ackTimeout() {
-	
     }
 
     public void putFile() throws FileNotFoundException, IOException {
 	byte[] file_info = Converter.filetoBytes(_file);
 	UDPFDatagram datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
-	datagram.setData(file_info);
-	datagram.setSeqNum(1);
-	_db.put(datagram);
-	_sent++;
+	//Debug.dump("FLOW INFO:: "+Converter.objectToBytes(datagram).length);
+	byte[] buffer = null;
+	int buffer_length = 512 - Converter.objectToBytes(datagram).length;
+	/* Create file datagrams. */
+	for (int i = 0, seq = 0; i < file_info.length; i += buffer.length, seq++) {
+	    Debug.dump("FLOW INFO:: "+i);
+	    // Update length
+	    if(i+buffer_length >= file_info.length) {
+		buffer_length = file_info.length - i;
+	    }
+	    buffer = new byte[buffer_length];
+	    System.arraycopy(file_info, i, buffer, 0, buffer_length);
+	    datagram.setData(file_info);
+	    datagram.setSeqNum(seq);
+	    _db.put(datagram);
+	    _sent++;
+	    datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
+	}
     }
 
     /**
@@ -138,7 +147,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.SYN));
 
     }
-    
+
     /**
      * @param args the command line arguments
      */
