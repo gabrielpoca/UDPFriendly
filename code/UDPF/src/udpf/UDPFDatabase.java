@@ -5,8 +5,6 @@
 package udpf;
 
 import java.util.ArrayList;
-import udpf.UDPFDatagram;
-import utils.Debug;
 
 /**
  *
@@ -14,21 +12,22 @@ import utils.Debug;
  */
 public class UDPFDatabase {
     
-    private ArrayList<UDPFDatagram> database;
+    protected ArrayList<UDPFDatagram> _database;
     
     public UDPFDatabase() {
-        database = new ArrayList<UDPFDatagram>();
+        _database = new ArrayList<UDPFDatagram>();
     }
     
     public synchronized void put (UDPFDatagram n) {
-        database.add(n);
+        _database.add(n);
         notifyAll();
     }
     
     public synchronized UDPFDatagram get(int last_index) throws InterruptedException {
-        while(last_index >= database.size())
+        while(last_index >= _database.size())
             wait();
-        return database.get(last_index);
+        return _database.get(last_index);
     }
+
     
 }
