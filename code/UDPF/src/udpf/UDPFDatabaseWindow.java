@@ -4,24 +4,42 @@
  */
 package udpf;
 
+import java.util.Observable;
+import java.util.Observer;
+import utils.Debug;
+
 /**
  *
  * @author gabrielpoca
  */
-public class UDPFDatabaseWindow extends UDPFDatabase {
+public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
     private int _sent;
     private int _window;
+    
+    private boolean _time;
+    private UDPFTimeout _timeout;
     
     public UDPFDatabaseWindow(int window) {
         super();
 	_sent = 0;
 	_window = window;
+	
+	_timeout = new UDPFTimeout();
+	_timeout.addObserver(this);
+	Thread t = new Thread(_timeout);
+	t.start();
+	
+	_time = false;
     }
     
     public synchronized UDPFDatagram get(int last_index) throws InterruptedException {
-        while(last_index >= _database.size() && _window != _sent)
+        while(last_index >= _database.size())
             wait();
+	while(_time)
+	    wait();
 	_sent++;
+	_time = true;
+	_timeout.waitNewTime(3000);
         return _database.get(last_index);
     }
     
@@ -31,6 +49,13 @@ public class UDPFDatabaseWindow extends UDPFDatabase {
     
     public synchronized void setWindow(int window) {
 	_window = window;
+    }
+
+    @Override
+    public synchronized void update(Observable o, Object o1) {
+	Debug.dump("DEBUG:: DatabaseWindow:: Timeout");
+	_time = false;
+	notifyAll();
     }
        
 }

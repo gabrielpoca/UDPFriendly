@@ -17,6 +17,7 @@ import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import udpf.UDPFDatabase;
+import udpf.UDPFDatabaseWindow;
 import udpf.UDPFDatagram;
 import udpf.UDPFTimeout;
 import utils.Converter;
@@ -44,7 +45,7 @@ public class UDPFClientSide extends Thread implements Observer {
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
 	// Start socket and database.
 	_socket = new DatagramSocket(PORT);
-	_db = new UDPFDatabase();
+	_db = new UDPFDatabaseWindow(3);
 	// Set send
 	_addr = InetAddress.getByName("localhost");
 	_port = 9999;
@@ -59,7 +60,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	_sent = _confirmed = 0;
 
 	// Timeout
-	_timeout = new UDPFTimeout(0);
+	_timeout = new UDPFTimeout();
 	_timeout.addObserver(this);
     }
 
@@ -86,10 +87,12 @@ public class UDPFClientSide extends Thread implements Observer {
 			    _send.setPort(_port);
 			    /* Send File. */
 			    putFile();
-			    putEndComunication();
 			    break;
 			case ACK:
 			    _confirmed++;
+			    if (_sent == _confirmed) {
+				putEndComunication();
+			    }
 			    break;
 			case FIN_ACK: // End Comunication
 			    _run = false;
@@ -113,23 +116,21 @@ public class UDPFClientSide extends Thread implements Observer {
     public void putFile() throws FileNotFoundException, IOException {
 	byte[] file_info = Converter.filetoBytes(_file);
 	UDPFDatagram datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
-	//Debug.dump("FLOW INFO:: "+Converter.objectToBytes(datagram).length);
 	byte[] buffer = null;
 	int buffer_length = 512 - Converter.objectToBytes(datagram).length;
 	/* Create file datagrams. */
 	for (int i = 0, seq = 0; i < file_info.length; i += buffer.length, seq++) {
-	    Debug.dump("FLOW INFO:: "+i);
-	    // Update length
-	    if(i+buffer_length >= file_info.length) {
+	    // Update length if needed
+	    if (i + buffer_length >= file_info.length) {
 		buffer_length = file_info.length - i;
 	    }
+	    datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
 	    buffer = new byte[buffer_length];
 	    System.arraycopy(file_info, i, buffer, 0, buffer_length);
-	    datagram.setData(file_info);
+	    datagram.setData(buffer);
 	    datagram.setSeqNum(seq);
 	    _db.put(datagram);
 	    _sent++;
-	    datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
 	}
     }
 
