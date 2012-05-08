@@ -39,10 +39,11 @@ public class UDPFSend extends Thread {
     @Override
     public void run() {
         try {
-            byte[] send_info = new byte[1024];
+            byte[] send_info;
             int i = 0;
             while (_run) {
                 send_info = Converter.objectToBytes(_db.get(i));
+		Debug.dump("SIZE: "+send_info.length);
                 _socket.send(new DatagramPacket(send_info, send_info.length, _addr, _port));
                 i++;
 		Debug.dump("Debug:: Send:: SENT!");

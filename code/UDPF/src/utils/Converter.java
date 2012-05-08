@@ -6,6 +6,7 @@ package utils;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -32,12 +33,12 @@ public class Converter {
     /** Converts an array of bytes back to its constituent object. */
     public static Object bytesToObject(byte[] bytes) throws IOException, ClassNotFoundException {
         Object object = null;
-	
 
-        ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(bytes));
+	ByteArrayInputStream input = new ByteArrayInputStream(bytes);
+        ObjectInputStream in = new ObjectInputStream(input);
 	object = in.readObject();
 	in.close();
-	
+
         return object;
     }
 

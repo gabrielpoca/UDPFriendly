@@ -48,7 +48,7 @@ public class UDPFTimeout extends Observable implements Runnable {
 	}
     }
 
-    public void stop() {
+    public synchronized void stop() {
 	_run = false;
 	notifyAll();
     }

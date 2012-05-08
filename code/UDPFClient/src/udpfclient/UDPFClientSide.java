@@ -116,19 +116,25 @@ public class UDPFClientSide extends Thread implements Observer {
     public void putFile() throws FileNotFoundException, IOException {
 	byte[] file_info = Converter.filetoBytes(_file);
 	UDPFDatagram datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
+	datagram.setSeqNum(9999);
+
 	byte[] buffer = null;
-	int buffer_length = 512 - Converter.objectToBytes(datagram).length;
+	int buffer_length = 512 - Converter.objectToBytes(datagram).length - 22;
 	/* Create file datagrams. */
 	for (int i = 0, seq = 0; i < file_info.length; i += buffer.length, seq++) {
 	    // Update length if needed
 	    if (i + buffer_length >= file_info.length) {
 		buffer_length = file_info.length - i;
+		Debug.dump("Size Chnaged!");
 	    }
 	    datagram = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.INFO);
 	    buffer = new byte[buffer_length];
 	    System.arraycopy(file_info, i, buffer, 0, buffer_length);
+
 	    datagram.setData(buffer);
+
 	    datagram.setSeqNum(seq);
+	    	    	    Debug.dump("FILE: "+Converter.objectToBytes(datagram).length);
 	    _db.put(datagram);
 	    _sent++;
 	}
