@@ -26,9 +26,12 @@ public class UDPFTimeout extends Observable implements Runnable {
 	try {
 	    checkNewTime();
 	    while (_run) {
+		int old_time = _time;
 		Thread.sleep(_time);
-		setChanged();
-		notifyObservers();
+		if(old_time == _time) {
+		    setChanged();
+		    notifyObservers();
+		}
 		_time = 0;
 		checkNewTime();
 	    }

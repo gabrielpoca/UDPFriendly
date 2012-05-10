@@ -39,7 +39,7 @@ public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
 	    wait();
 	_sent++;
 	_time = true;
-	_timeout.waitNewTime(3000);
+	_timeout.waitNewTime(2000);
         return _database.get(last_index);
     }
     
@@ -53,7 +53,6 @@ public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
 
     @Override
     public synchronized void update(Observable o, Object o1) {
-	Debug.dump("DEBUG:: DatabaseWindow:: Timeout");
 	_time = false;
 	notifyAll();
     }

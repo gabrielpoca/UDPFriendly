@@ -24,6 +24,7 @@ public class UDPFClientSide extends Thread implements Observer {
 
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
+    public static final int TIMEOUT = 5000;
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
@@ -37,6 +38,7 @@ public class UDPFClientSide extends Thread implements Observer {
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
+ 
     private UDPFTimeout _timeout;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
@@ -62,6 +64,9 @@ public class UDPFClientSide extends Thread implements Observer {
     }
 
     public void run() {
+	/* Start timeout. */
+	Thread time = new Thread(_timeout);
+	time.start();	
 	/* Start send. */
 	Thread t = new Thread(_send);
 	t.start();
@@ -84,10 +89,15 @@ public class UDPFClientSide extends Thread implements Observer {
 			    _send.setPort(_port);
 			    /* Send File. */
 			    putFile();
+			    /* Wait for ack and start timeout. */
+			    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
+			    _timeout.waitNewTime(TIMEOUT);
 			    break;
 			case ACK:
 			    _confirmed++;
+			    _timeout.waitNewTime(TIMEOUT);			    
 			    if (_sent == _confirmed) {
+				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 				putEndComunication();
 			    }
 			    break;
@@ -105,9 +115,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	    }
 	}
 	_send.stopSend();
-    }
-
-    public void ackTimeout() {
+	_timeout.stop();
     }
 
     public void putFile() throws FileNotFoundException, IOException {
@@ -167,6 +175,10 @@ public class UDPFClientSide extends Thread implements Observer {
 
     @Override
     public void update(Observable o, Object o1) {
-	throw new UnsupportedOperationException("Not supported yet.");
+	if(_wait_type == UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal()) {
+	    Debug.dump("CLIENT: TIMEOUT ACK!");
+	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
+	    putEndComunication();
+	}
     }
 }
