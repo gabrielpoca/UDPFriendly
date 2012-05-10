@@ -1,4 +1,3 @@
-
 package udpfclient;
 
 import java.io.FileNotFoundException;
@@ -10,6 +9,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.util.Observer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -38,7 +38,6 @@ public class UDPFClientSide extends Thread implements Observer {
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
- 
     private UDPFTimeout _timeout;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
@@ -64,17 +63,18 @@ public class UDPFClientSide extends Thread implements Observer {
     }
 
     public void run() {
-	/* Start timeout. */
-	Thread time = new Thread(_timeout);
-	time.start();	
-	/* Start send. */
-	Thread t = new Thread(_send);
-	t.start();
-	/* Send SYN message and wait SYN_ACK. */
-	putStartDatagram();
-	_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
-	while (_run) {
-	    try {
+	try {
+	    /* Start timeout. */
+	    Thread time = new Thread(_timeout);
+	    time.start();
+	    _socket.setSoTimeout(TIMEOUT);
+	    /* Start send. */
+	    Thread t = new Thread(_send);
+	    t.start();
+	    /* Send SYN message and wait SYN_ACK. */
+	    putStartDatagram();
+	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
+	    while (_run) {
 		byte[] buffer = new byte[BUFFER_SIZE];
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		_socket.receive(receivePacket);
@@ -95,7 +95,7 @@ public class UDPFClientSide extends Thread implements Observer {
 			    break;
 			case ACK:
 			    _confirmed++;
-			    _timeout.waitNewTime(TIMEOUT);			    
+			    _timeout.waitNewTime(TIMEOUT);
 			    if (_sent == _confirmed) {
 				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 				putEndComunication();
@@ -108,14 +108,18 @@ public class UDPFClientSide extends Thread implements Observer {
 		} else {
 		    System.out.println("Wrong package received!");
 		}
-	    } catch (ClassNotFoundException ex) {
-		Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
-	    } catch (IOException ex) {
-		Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
+
 	    }
+	    System.out.println("Ending client!");
+	    _send.stopSend();
+	    _timeout.stop();
+	} catch (ClassNotFoundException ex) {
+	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
+	} catch (SocketTimeoutException e) {
+	    
+	} catch (IOException ex) {
+	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
-	_send.stopSend();
-	_timeout.stop();
     }
 
     public void putFile() throws FileNotFoundException, IOException {
@@ -175,10 +179,11 @@ public class UDPFClientSide extends Thread implements Observer {
 
     @Override
     public void update(Observable o, Object o1) {
-	if(_wait_type == UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal()) {
+	if (_wait_type == UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal()) {
 	    Debug.dump("CLIENT: TIMEOUT ACK!");
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 	    putEndComunication();
+	    _run = false;
 	}
     }
 }
