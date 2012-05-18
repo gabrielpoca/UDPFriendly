@@ -15,21 +15,21 @@ public class UDPFRTT {
     private int _timeout;
     private float _a;
     private float _b;
-    public ArrayList<Float> _db;
+    public ArrayList<Long> _db;
 
     public UDPFRTT() {
-	_db = new ArrayList<Float>();
+	_db = new ArrayList<Long>();
 	_a = (float) 0.125;
 	_timeout = 0;
     }
 
     public UDPFRTT(int timeout) {
 	_timeout = timeout;
-	_db = new ArrayList<Float>();
+	_db = new ArrayList<Long>();
 	_a = (float) 0.125;
     }
 
-    public void addTime(float time) {
+    public void addTime(long time) {
 	_timeout = (int) ((1 - _a) * _db.get(_db.size()) + _a * time);
 	_db.add(time);
     }

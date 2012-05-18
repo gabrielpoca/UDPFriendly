@@ -14,15 +14,13 @@ import utils.Debug;
  */
 public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
     private int _sent;
-    private int _window;
     
     private boolean _time;
     private UDPFTimeout _timeout;
     
-    public UDPFDatabaseWindow(int window) {
+    public UDPFDatabaseWindow() {
         super();
 	_sent = 0;
-	_window = window;
 	
 	_timeout = new UDPFTimeout();
 	_timeout.addObserver(this);
@@ -45,10 +43,6 @@ public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
     
     public synchronized void resetSent() {
 	_sent = 0;
-    }
-    
-    public synchronized void setWindow(int window) {
-	_window = window;
     }
 
     @Override

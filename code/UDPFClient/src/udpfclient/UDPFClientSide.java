@@ -26,7 +26,7 @@ public class UDPFClientSide extends Thread implements Observer {
     public static final int PORT = 9998;
     
     private UDPFRTT _timeout;
-    private int _last_time;
+    private long _time;
     
     
     /* Server Information. */
@@ -46,7 +46,7 @@ public class UDPFClientSide extends Thread implements Observer {
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
 	// Start socket and database.
 	_socket = new DatagramSocket(PORT);
-	_db = new UDPFDatabaseWindow(3);
+	_db = new UDPFDatabaseWindow();
 	// Set send
 	_addr = InetAddress.getByName("localhost");
 	_port = 9999;
@@ -65,7 +65,6 @@ public class UDPFClientSide extends Thread implements Observer {
 	//_timeout.addObserver(this);
 	
 	_timeout = new UDPFRTT();
-	_last_time = 0;
     }
 
     public void run() {
@@ -78,6 +77,8 @@ public class UDPFClientSide extends Thread implements Observer {
 	    t.start();
 	    /* Send SYN message and wait SYN_ACK. */
 	    putStartDatagram();
+	    // start counting time.
+	    _time = System.currentTimeMillis();	    	    
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
 	    while (_run) {
 		try {
@@ -87,6 +88,7 @@ public class UDPFClientSide extends Thread implements Observer {
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		    _socket.receive(receivePacket);
+		    _timeout.addTime(_time - System.currentTimeMillis());
 		    /* Process Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
 		    Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
