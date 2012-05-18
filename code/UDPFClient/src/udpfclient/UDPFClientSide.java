@@ -24,7 +24,11 @@ public class UDPFClientSide extends Thread implements Observer {
 
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
-    public static final int TIMEOUT = 5000;
+    
+    private UDPFRTT _timeout;
+    private int _last_time;
+    
+    
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
@@ -38,7 +42,6 @@ public class UDPFClientSide extends Thread implements Observer {
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
-    private UDPFTimeout _timeout;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
 	// Start socket and database.
@@ -58,16 +61,18 @@ public class UDPFClientSide extends Thread implements Observer {
 	_sent = _confirmed = 0;
 
 	// Timeout
-	_timeout = new UDPFTimeout();
-	_timeout.addObserver(this);
+	//_timeout = new UDPFTimeout();
+	//_timeout.addObserver(this);
+	
+	_timeout = new UDPFRTT();
+	_last_time = 0;
     }
 
     public void run() {
 	try {
 	    /* Start timeout. */
-	    Thread time = new Thread(_timeout);
-	    time.start();
-	    _socket.setSoTimeout(TIMEOUT);
+	    //Thread time = new Thread(_timeout);
+	    //time.start();
 	    /* Start send. */
 	    Thread t = new Thread(_send);
 	    t.start();
@@ -75,48 +80,51 @@ public class UDPFClientSide extends Thread implements Observer {
 	    putStartDatagram();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
 	    while (_run) {
-		byte[] buffer = new byte[BUFFER_SIZE];
-		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
-		_socket.receive(receivePacket);
-		UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
-		/* if waiting type is correct or none is waiting. */
-		if (receiveDatagram.getType().ordinal() == _wait_type || _wait_type != -1) {
-		    switch (receiveDatagram.getType()) {
-			case SYN_ACK: // End Handshake
+		try {
+		    /* Update Timeout. */
+		    _socket.setSoTimeout(_timeout.getTimeout());
+		    /* Wait Package. */
+		    byte[] buffer = new byte[BUFFER_SIZE];
+		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
+		    _socket.receive(receivePacket);
+		    /* Process Package. */
+		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
+		    Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
+		    /* if waiting type is correct or none is waiting. */
+		    if (receiveDatagram.getType().ordinal() == _wait_type || _wait_type != -1) {
+			switch (receiveDatagram.getType()) {
+			    case SYN_ACK: // End Handshake
 			    /* Update Server Port. */
-			    _port = receivePacket.getPort();
-			    _send.setPort(_port);
-			    /* Send File. */
-			    putFile();
-			    /* Wait for ack and start timeout. */
-			    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
-			    _timeout.waitNewTime(TIMEOUT);
-			    break;
-			case ACK:
-			    _confirmed++;
-			    _timeout.waitNewTime(TIMEOUT);
-			    if (_sent == _confirmed) {
-				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
-				putEndComunication();
-			    }
-			    break;
-			case FIN_ACK: // End Comunication
-			    _run = false;
-			    break;
+				_port = receivePacket.getPort();
+				_send.setPort(_port);
+				/* Send File. */
+				putFile();
+				/* Wait for ack and start timeout. */
+				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
+				break;
+			    case ACK:
+				_confirmed++;
+				if (_sent == _confirmed) {
+				    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
+				    putEndComunication();
+				}
+				break;
+			    case FIN_ACK: // End Comunication
+				_run = false;
+				break;
+			}
+		    } else {
+			System.out.println("Wrong package received!");
 		    }
-		} else {
-		    System.out.println("Wrong package received!");
+		} catch (SocketTimeoutException e) {
+		    Debug.dump("CLIENT: TIMEOUT ACK!");
 		}
-
 	    }
 	    System.out.println("Ending client!");
 	    _send.stopSend();
-	    _timeout.stop();
+	    //_timeout.stop();
 	} catch (ClassNotFoundException ex) {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
-	} catch (SocketTimeoutException e) {
-	    
 	} catch (IOException ex) {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
@@ -168,6 +176,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/file.txt"));
 	    t.start();
 	    t.join();
+	    System.exit(0);
 	} catch (SocketException ex) {
 	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (UnknownHostException ex) {
@@ -179,11 +188,5 @@ public class UDPFClientSide extends Thread implements Observer {
 
     @Override
     public void update(Observable o, Object o1) {
-	if (_wait_type == UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal()) {
-	    Debug.dump("CLIENT: TIMEOUT ACK!");
-	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
-	    putEndComunication();
-	    _run = false;
-	}
     }
 }

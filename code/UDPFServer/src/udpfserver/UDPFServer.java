@@ -217,6 +217,7 @@ public class UDPFServer extends Thread {
 	    Thread t = new Thread(new UDPFServer());
 	    t.start();
 	    t.join();
+	    System.exit(0);
 	} catch (InterruptedException ex) {
 	    Logger.getLogger(UDPFServer.class.getName()).log(Level.SEVERE, null, ex);
 	}

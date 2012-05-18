@@ -11,6 +11,7 @@ import java.net.InetAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import utils.Converter;
+import utils.Debug;
 
 /**
  *
@@ -40,8 +41,10 @@ public class UDPFSend extends Thread {
             byte[] send_info;
             int i = 0;
             while (_run) {
-                send_info = Converter.objectToBytes(_db.get(i));
+		UDPFDatagram tmp = _db.get(i);
+                send_info = Converter.objectToBytes(tmp);
                 _socket.send(new DatagramPacket(send_info, send_info.length, _addr, _port));
+		Debug.dump("DEBUG:: SENT:: "+tmp.getType());
                 i++;
             }
         } catch (InterruptedException ex) {
