@@ -205,7 +205,6 @@ public class UDPFServer extends Thread {
 	    return null;
 	} else {
 	    _ports_used.add(port);
-	    Debug.dump(port+"");
 	    return new DatagramSocket(port);
 	}
     }

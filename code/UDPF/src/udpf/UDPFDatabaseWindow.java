@@ -13,36 +13,37 @@ import utils.Debug;
  * @author gabrielpoca
  */
 public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
+    
     private int _sent;
     
     private boolean _time;
-    private UDPFTimeout _timeout;
     
     public UDPFDatabaseWindow() {
         super();
 	_sent = 0;
 	
-	_timeout = new UDPFTimeout();
-	_timeout.addObserver(this);
-	Thread t = new Thread(_timeout);
-	t.start();
-	
-	_time = false;
+	_time = true;
     }
     
     public synchronized UDPFDatagram get(int last_index) throws InterruptedException {
         while(last_index >= _database.size())
             wait();
+	
 	while(_time)
 	    wait();
+	
 	_sent++;
 	_time = true;
-	_timeout.waitNewTime(2000);
         return _database.get(last_index);
     }
     
     public synchronized void resetSent() {
 	_sent = 0;
+    }
+    
+    public synchronized void sendOne() {
+	_time = false;
+	notifyAll();
     }
 
     @Override

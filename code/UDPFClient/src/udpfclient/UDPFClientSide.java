@@ -37,7 +37,7 @@ public class UDPFClientSide extends Thread implements Observer {
 
     /* Local variables. */
     private DatagramSocket _socket;
-    private UDPFDatabase _db;
+    private UDPFDatabaseWindow _db;
     private UDPFSend _send;
     private String _file;
     int _wait_type; // next datagram type. -1 for none.
@@ -77,6 +77,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	    t.start();
 	    /* Send SYN message and wait SYN_ACK. */
 	    putStartDatagram();
+	    sendOne();
 	    // start counting time.
 	    _time = System.currentTimeMillis();	    	    
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
@@ -88,7 +89,7 @@ public class UDPFClientSide extends Thread implements Observer {
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		    _socket.receive(receivePacket);
-		    _timeout.addTime(_time - System.currentTimeMillis());
+		    _timeout.addTime(System.currentTimeMillis() - _time);
 		    /* Process Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
 		    Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
@@ -101,11 +102,15 @@ public class UDPFClientSide extends Thread implements Observer {
 				_send.setPort(_port);
 				/* Send File. */
 				putFile();
+				sendOne();
+				_time = System.currentTimeMillis();
 				/* Wait for ack and start timeout. */
 				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
 				break;
 			    case ACK:
 				_confirmed++;
+				_time = System.currentTimeMillis();
+				sendOne();
 				if (_sent == _confirmed) {
 				    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 				    putEndComunication();
@@ -130,6 +135,10 @@ public class UDPFClientSide extends Thread implements Observer {
 	} catch (IOException ex) {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
+    }
+    
+    public void sendOne() {
+	_db.sendOne();
     }
 
     public void putFile() throws FileNotFoundException, IOException {

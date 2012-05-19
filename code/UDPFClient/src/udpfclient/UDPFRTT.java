@@ -5,6 +5,7 @@
 package udpfclient;
 
 import java.util.ArrayList;
+import utils.Debug;
 
 /**
  *
@@ -30,11 +31,14 @@ public class UDPFRTT {
     }
 
     public void addTime(long time) {
-	_timeout = (int) ((1 - _a) * _db.get(_db.size()) + _a * time);
+	Debug.dump("RTT:: Time:: "+time);
+	if(!_db.isEmpty())
+	    _timeout = (int) ((1 - _a) * _db.get(_db.size() - 1) + _a * time);
 	_db.add(time);
     }
 
     public int getTimeout() {
-	return _timeout;
+	Debug.dump("RTT:: Timeout:: "+_timeout);
+	return _timeout*2;
     }
 }
