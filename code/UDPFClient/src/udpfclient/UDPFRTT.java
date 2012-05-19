@@ -16,18 +16,26 @@ public class UDPFRTT {
     private int _timeout;
     private float _a;
     private float _b;
+    
+    private int _window;
+    
     public ArrayList<Long> _db;
 
     public UDPFRTT() {
 	_db = new ArrayList<Long>();
 	_a = (float) 0.125;
 	_timeout = 0;
+	_window = 1;
     }
 
     public UDPFRTT(int timeout) {
 	_timeout = timeout;
 	_db = new ArrayList<Long>();
 	_a = (float) 0.125;
+    }
+    
+    public int getWindow() {
+	return _window;
     }
 
     public void addTime(long time) {

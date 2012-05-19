@@ -20,18 +20,16 @@ import udpf.UDPFTimeout;
 import utils.Converter;
 import utils.Debug;
 
-public class UDPFClientSide extends Thread implements Observer {
+public class UDPFClientSide extends Thread {
 
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
-    
     private UDPFRTT _timeout;
     private long _time;
-    
-    
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
+    int _exiting;
     int _sent;
     int _confirmed;
 
@@ -58,12 +56,12 @@ public class UDPFClientSide extends Thread implements Observer {
 	// none type waiting.
 	_wait_type = -1;
 	// ACK confirmation
-	_sent = _confirmed = 0;
+	_exiting = _confirmed = _sent = 0;
 
 	// Timeout
 	//_timeout = new UDPFTimeout();
 	//_timeout.addObserver(this);
-	
+
 	_timeout = new UDPFRTT();
     }
 
@@ -79,7 +77,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	    putStartDatagram();
 	    sendOne();
 	    // start counting time.
-	    _time = System.currentTimeMillis();	    	    
+	    _time = System.currentTimeMillis();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
 	    while (_run) {
 		try {
@@ -109,11 +107,12 @@ public class UDPFClientSide extends Thread implements Observer {
 				break;
 			    case ACK:
 				_confirmed++;
-				_time = System.currentTimeMillis();
-				sendOne();
-				if (_sent == _confirmed) {
-				    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
-				    putEndComunication();
+				if (_confirmed == _timeout.getWindow()) {
+				    _time = System.currentTimeMillis();
+				    if (_exiting == _sent) {
+					_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
+					putEndComunication();
+				    }
 				}
 				break;
 			    case FIN_ACK: // End Comunication
@@ -121,10 +120,11 @@ public class UDPFClientSide extends Thread implements Observer {
 				break;
 			}
 		    } else {
-			System.out.println("Wrong package received!");
+			Debug.dumpMessage("Wrong package received! " + receiveDatagram.getType());
 		    }
 		} catch (SocketTimeoutException e) {
 		    Debug.dumpException("TIMEOUT EXCEPTION");
+		    sendOne();
 		}
 	    }
 	    Debug.dumpMessage("Ending client!");
@@ -136,9 +136,10 @@ public class UDPFClientSide extends Thread implements Observer {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
-    
+
     public void sendOne() {
 	_db.sendOne();
+	_sent++;
     }
 
     public void putFile() throws FileNotFoundException, IOException {
@@ -160,7 +161,7 @@ public class UDPFClientSide extends Thread implements Observer {
 	    datagram.setData(buffer);
 	    datagram.setSeqNum(seq);
 	    _db.put(datagram);
-	    _sent++;
+	    _exiting++;
 	}
     }
 
@@ -195,9 +196,5 @@ public class UDPFClientSide extends Thread implements Observer {
 	} catch (InterruptedException ex) {
 	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	}
-    }
-
-    @Override
-    public void update(Observable o, Object o1) {
     }
 }

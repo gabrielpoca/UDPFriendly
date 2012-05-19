@@ -48,17 +48,21 @@ e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
 \section{Notas Iniciais}
 Este documento serve como resumo, intermédio, para acompanhamento do projecto prático de Comunicação por Computadores. São abordadas as metodologias e os conceitos adoptados.
 
+\section{Arquitectura}
+A arquitectura 
+
 \section{Comunicação}
 \subsection{Tipos de Mensagens}
-Cada mensagem tranpsorta diferentes elementos de informação, como uma mensagem INFO que transporta informação do documento a enviar e um indicador da sequência da mesma. Existem seis tipos de mensagens:
+Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um mensagem INFO transporta informação do documento a enviar e um indicador de sequência. Como tal existem seis tipos de mensagens:
 \begin{description}
-	\item[SYN] Mensagem inicial para o establecer da comunicação com o servidor.
+	\item[SYN] Mensagem inicial no establecer da comunicação com o servidor.
 	\item[SYN\_ACK] Mensagem de confirmação de SYN.
 	\item[INFO] Mensagem que transporta informação sobre o documento a enviar.
 	\item[ACK] Mensagem de confirmação da recepção de uma mensagem INFO.
 	\item[FIN] Mensagem de final de comunicação.
 	\item[FIN\_ACK] Mensagem de confirmação da recepção de FIN.
 \end{description}
+No processo de comunicação entre cliente e servidor o primeiro apenas comunica com mensagens \textit{SYN}, \textit{INFO} e \textit{FIN} e o servidor com as restantes.
 
 \subsection{Protocolo}
 \subsubsection{Handshake}
