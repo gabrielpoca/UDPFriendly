@@ -38,7 +38,6 @@ public class UDPFRTT {
     }
 
     public int getTimeout() {
-	Debug.dump("RTT:: Timeout:: "+_timeout);
 	return _timeout*2;
     }
 }

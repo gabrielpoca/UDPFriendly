@@ -44,7 +44,7 @@ public class UDPFSend extends Thread {
 		UDPFDatagram tmp = _db.get(i);
                 send_info = Converter.objectToBytes(tmp);
                 _socket.send(new DatagramPacket(send_info, send_info.length, _addr, _port));
-		Debug.dump("DEBUG:: SENT:: "+tmp.getType());
+		Debug.dumpPackageSent(""+tmp.getType());
                 i++;
             }
         } catch (InterruptedException ex) {

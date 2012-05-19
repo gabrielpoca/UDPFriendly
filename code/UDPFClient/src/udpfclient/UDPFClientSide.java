@@ -92,7 +92,7 @@ public class UDPFClientSide extends Thread implements Observer {
 		    _timeout.addTime(System.currentTimeMillis() - _time);
 		    /* Process Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		    Debug.dump("CLIENT: Package Received! " + receiveDatagram.getType().name());
+		    Debug.dumpPackageReceived(receiveDatagram.getType().name());
 		    /* if waiting type is correct or none is waiting. */
 		    if (receiveDatagram.getType().ordinal() == _wait_type || _wait_type != -1) {
 			switch (receiveDatagram.getType()) {
