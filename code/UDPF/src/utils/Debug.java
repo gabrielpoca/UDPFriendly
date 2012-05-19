@@ -24,6 +24,10 @@ public class Debug {
 	System.out.println(ANSI_BLACK+"DEBG:: " + s);
     }
     
+    public static void dumpMessage(String s) {
+	System.out.println(ANSI_PURPLE+s);
+    }
+    
     public static void dumpPackageSent(String s) {
 	System.out.println(ANSI_BLUE+"SENT:: " + s);
     }

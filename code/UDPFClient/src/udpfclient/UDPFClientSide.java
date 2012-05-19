@@ -124,10 +124,10 @@ public class UDPFClientSide extends Thread implements Observer {
 			System.out.println("Wrong package received!");
 		    }
 		} catch (SocketTimeoutException e) {
-		    Debug.dump("CLIENT: TIMEOUT ACK!");
+		    Debug.dumpException("TIMEOUT EXCEPTION");
 		}
 	    }
-	    System.out.println("Ending client!");
+	    Debug.dumpMessage("Ending client!");
 	    _send.stopSend();
 	    //_timeout.stop();
 	} catch (ClassNotFoundException ex) {
