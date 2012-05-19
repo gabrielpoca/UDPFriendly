@@ -73,7 +73,7 @@ public class UDPFClientSide extends Thread {
 	    /* Send SYN message and wait SYN_ACK. */
 	    putStartDatagram();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
-	    send();
+	    sendOne();
 	    // start rtt count.
 	    _time = System.currentTimeMillis();
 	    while (_run) {
@@ -106,11 +106,11 @@ public class UDPFClientSide extends Thread {
 				/* Confirm package received. */
 				_confirmed++;
 				// if all confirmed or no more to be confirmed
-				if (_confirmed == _timeout.getWindow() || _confirmed + _sent >= _exiting) {				   
-				    _confirmed = 0;
+				if (_confirmed == _sent) {				   
 				    if (_exiting <= _sent) {
 					_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 					putEndComunication();
+					sendOne();
 				    } else {
 					_timeout.incWindow();
 					_time = System.currentTimeMillis();
@@ -143,9 +143,15 @@ public class UDPFClientSide extends Thread {
     }
 
     public void send() {
-	_db.send(_timeout.getWindow());
-	_sent += _timeout.getWindow();
-	_confirmed = 0;
+	int tmp = _exiting - _sent;
+	if(tmp > _timeout.getWindow())
+	    tmp = _timeout.getWindow();
+	_db.send(tmp);
+	_sent += tmp;
+    }
+    
+    public void sendOne() {
+	_db.send(1);
     }
 
     public void putFile() throws FileNotFoundException, IOException {

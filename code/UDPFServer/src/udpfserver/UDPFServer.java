@@ -63,7 +63,7 @@ class UDPFServerReceiver extends Thread {
 		DatagramPacket receivePacket = new DatagramPacket(receiveData, receiveData.length);
 		_socket.receive(receivePacket);
 		UDPFDatagram data = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.dump("ServerReceiver: Package Received " + data.getType().name());
+		Debug.dumpPackageReceived(  data.getType().name());
 		/* Switch. */
 		switch (data.getType()) {
 		    case INFO:
@@ -156,7 +156,7 @@ public class UDPFServer extends Thread {
 
     public void run() {
 	try {
-	    Debug.dump("Server: starting");
+	    Debug.dumpMessage("Server: starting");
 	    DatagramSocket socket = new DatagramSocket(9999);
 	    boolean run = true;
 	    while (run) {
@@ -164,7 +164,7 @@ public class UDPFServer extends Thread {
 		DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		socket.receive(receivePacket);
 		UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		Debug.dump("Server: Package Received! " + receiveDatagram.getType().name());
+		Debug.dumpPackageReceived("Main: Package Received! " + receiveDatagram.getType().name());
 		switch (receiveDatagram.getType()) {
 		    case SYN:
 			if (_ports_used.size() < PORTS_ALLOWED.length) {
@@ -172,18 +172,18 @@ public class UDPFServer extends Thread {
 			    InetAddress addr = receivePacket.getAddress();
 			    DatagramSocket ds = getNewDatagramSocket();
 			    if (ds != null) {
-				Debug.dump("Server: Adding client on port "+ds.getLocalPort());
+				Debug.dumpMessage("Main: Adding client on port "+ds.getLocalPort());
 				Thread t = new Thread(new UDPFServerReceiver(ds, addr, port, _ports_used));
 				t.start();
 			    } else {
 				throw new NullPointerException("Server: DatagramSocket NULL!");
 			    }
 			} else {
-			    Debug.dump("Server: Max number of connections allowed reached!");
+			    Debug.dumpMessage("Main: Max number of connections allowed reached!");
 			}
 			break;
 		    default:
-			Debug.dump("Server: Wrong package!");
+			Debug.dumpMessage("Main: Wrong package!");
 			break;
 		}
 	    }
