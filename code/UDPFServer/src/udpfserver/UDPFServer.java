@@ -14,6 +14,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.TreeMap;
 import java.util.logging.Level;
@@ -95,8 +96,8 @@ class UDPFServerReceiver extends Thread {
 	}	
 	File file;
 	try {
-	    file = Converter.bytestoFile(output.toByteArray(), "file.txt");
-	    Debug.dump(readFileAsString(file.getPath()));
+	    file = Converter.bytestoFile(output.toByteArray(), System.currentTimeMillis()+"_"+_socket.getLocalPort());
+	    //Debug.dump(readFileAsString(file.getPath()));
 	} catch (FileNotFoundException ex) {
 	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (IOException ex) {

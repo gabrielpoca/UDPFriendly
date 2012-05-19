@@ -197,7 +197,7 @@ public class UDPFClientSide extends Thread {
      */
     public static void main(String[] args) {
 	try {
-	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/file.txt"));
+	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/imagem.jpg"));
 	    t.start();
 	    t.join();
 	    System.exit(0);
