@@ -12,44 +12,31 @@ import utils.Debug;
  *
  * @author gabrielpoca
  */
-public class UDPFDatabaseWindow extends UDPFDatabase implements Observer {
-    
-    private int _sent;
-    
-    private boolean _wait;
+public class UDPFDatabaseWindow extends UDPFDatabase {
+        
+    private int _wait;
     
     public UDPFDatabaseWindow() {
         super();
-	_sent = 0;
 	
-	_wait = true;
+	_wait = 1;
     }
     
     public synchronized UDPFDatagram get(int last_index) throws InterruptedException {
         while(last_index >= _database.size())
             wait();
 	
-	while(_wait)
+	while(_wait == 0)
 	    wait();
 	
-	_sent++;
-	_wait = true;
+	_wait--;
         return _database.get(last_index);
     }
     
-    public synchronized void resetSent() {
-	_sent = 0;
-    }
-    
-    public synchronized void sendOne() {
-	_wait = false;
+    public synchronized void send(int num) {
+	_wait = num;
 	notifyAll();
     }
 
-    @Override
-    public synchronized void update(Observable o, Object o1) {
-	_wait = false;
-	notifyAll();
-    }
        
 }

@@ -75,14 +75,14 @@ public class UDPFClientSide extends Thread {
 	    t.start();
 	    /* Send SYN message and wait SYN_ACK. */
 	    putStartDatagram();
-	    sendOne();
+	    send();
 	    // start counting time.
 	    _time = System.currentTimeMillis();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
 	    while (_run) {
 		try {
 		    /* Update Timeout. */
-		    _socket.setSoTimeout(_timeout.getTimeout());
+		    _socket.setSoTimeout((int)_timeout.getTimeout());
 		    /* Wait Package. */
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
@@ -100,18 +100,22 @@ public class UDPFClientSide extends Thread {
 				_send.setPort(_port);
 				/* Send File. */
 				putFile();
-				sendOne();
+				send();
 				_time = System.currentTimeMillis();
 				/* Wait for ack and start timeout. */
 				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
 				break;
 			    case ACK:
 				_confirmed++;
-				if (_confirmed == _timeout.getWindow()) {
-				    _time = System.currentTimeMillis();
-				    if (_exiting == _sent) {
+				_time = System.currentTimeMillis();
+				if (_confirmed == _timeout.getWindow() || _confirmed + _sent >= _exiting) {
+				    _confirmed = 0;
+				    if (_exiting <= _sent) {
 					_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 					putEndComunication();
+				    } else {
+					_timeout.incWindow();
+					send();
 				    }
 				}
 				break;
@@ -124,7 +128,9 @@ public class UDPFClientSide extends Thread {
 		    }
 		} catch (SocketTimeoutException e) {
 		    Debug.dumpException("TIMEOUT EXCEPTION");
-		    sendOne();
+		    _timeout.setTreshold(_timeout.getWindow() / 2);
+		    _timeout.setWindow(1);
+		    send();
 		}
 	    }
 	    Debug.dumpMessage("Ending client!");
@@ -137,9 +143,10 @@ public class UDPFClientSide extends Thread {
 	}
     }
 
-    public void sendOne() {
-	_db.sendOne();
-	_sent++;
+    public void send() {
+	_db.send(_timeout.getWindow());
+	_sent += _timeout.getWindow();
+	_confirmed = 0;
     }
 
     public void putFile() throws FileNotFoundException, IOException {

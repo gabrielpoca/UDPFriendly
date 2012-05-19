@@ -13,12 +13,12 @@ import utils.Debug;
  */
 public class UDPFRTT {
 
-    private int _timeout;
+    private long _timeout;
+    private int _treshdold;
+    
     private float _a;
     private float _b;
-    
     private int _window;
-    
     public ArrayList<Long> _db;
 
     public UDPFRTT() {
@@ -26,6 +26,7 @@ public class UDPFRTT {
 	_a = (float) 0.125;
 	_timeout = 0;
 	_window = 1;
+	_treshdold = 0;
     }
 
     public UDPFRTT(int timeout) {
@@ -33,19 +34,41 @@ public class UDPFRTT {
 	_db = new ArrayList<Long>();
 	_a = (float) 0.125;
     }
+
+    public void addTime(long time) {
+	_db.add(time);
+	if (_timeout == 0) {
+	    _timeout = time * 4;
+	}
+    }
     
+    public void incWindow() {
+	if(_window <= _treshdold)
+	    _window = _window*2;
+	else _window += 1;
+    }
+
     public int getWindow() {
 	return _window;
     }
 
-    public void addTime(long time) {
-	Debug.dump("RTT:: Time:: "+time);
-	if(!_db.isEmpty())
-	    _timeout = (int) ((1 - _a) * _db.get(_db.size() - 1) + _a * time);
-	_db.add(time);
+    public void setWindow(int window) {
+	_window = window;
     }
 
-    public int getTimeout() {
-	return _timeout*2;
+    public long getTimeout() {
+	return _timeout;
+    }
+
+    public void setTimeout(long timeout) {
+	_timeout = timeout;
+    }
+
+    public void setTreshold(int treshold) {
+	_treshdold = treshold;
+    }
+    
+    public int getTreshold() {
+	return _treshdold;
     }
 }
