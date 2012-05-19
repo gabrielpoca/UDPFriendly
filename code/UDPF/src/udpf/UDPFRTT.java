@@ -2,9 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package udpfclient;
+package udpf;
 
-import java.util.ArrayList;
+import java.util.TreeMap;
 import utils.Debug;
 
 /**
@@ -19,10 +19,13 @@ public class UDPFRTT {
     private float _a;
     private float _b;
     private int _window;
-    public ArrayList<Long> _db;
+    public TreeMap<Long, Long> _db_recv;
+    public TreeMap<Long, Long> _db_sent;
+    
 
     public UDPFRTT() {
-	_db = new ArrayList<Long>();
+	_db_recv = new TreeMap<Long, Long>();
+	_db_sent = new TreeMap<Long, Long>();
 	_a = (float) 0.125;
 	_timeout = 0;
 	_window = 1;
@@ -31,20 +34,22 @@ public class UDPFRTT {
 
     public UDPFRTT(int timeout) {
 	_timeout = timeout;
-	_db = new ArrayList<Long>();
+	_db_recv = new TreeMap<Long, Long>();
+	_db_sent = new TreeMap<Long, Long>();
 	_a = (float) 0.125;
     }
 
-    public void addTime(long time) {
-	_db.add(time);
-	if (_timeout == 0) {
-	    _timeout = time * 4;
-	}
+    public void addRecvTime(long time, long seq) {
+	_db_recv.put(seq, time);
+    }
+
+    public void addSentTime(long time, long seq) {
+	_db_sent.put(seq, time);
     }
     
     public void incWindow() {
-	if(_window <= _treshdold)
-	    _window = _window*2;
+	if(_window <= _treshdold || _treshdold == 0)
+	    _window = _window * 2;
 	else _window += 1;
     }
 
@@ -70,5 +75,13 @@ public class UDPFRTT {
     
     public int getTreshold() {
 	return _treshdold;
+    }
+    
+    public TreeMap<Long, Long> getSentDB() {
+	return _db_sent;
+    }
+    
+    public TreeMap<Long, Long> getRecvDB() {
+	return _db_recv;
     }
 }

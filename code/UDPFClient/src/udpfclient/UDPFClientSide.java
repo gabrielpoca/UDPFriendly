@@ -1,5 +1,6 @@
 package udpfclient;
 
+import udpf.UDPFRTT;
 import java.io.FileNotFoundException;
 import java.net.UnknownHostException;
 import java.util.Observable;
@@ -42,13 +43,15 @@ public class UDPFClientSide extends Thread {
     private boolean _run;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
+	
+	_timeout = new UDPFRTT();
 	// Start socket and database.
 	_socket = new DatagramSocket(PORT);
 	_db = new UDPFDatabaseWindow();
 	// Set send
 	_addr = InetAddress.getByName("localhost");
 	_port = 9999;
-	_send = new UDPFSend(_db, _socket, _addr, _port);
+	_send = new UDPFSend(_db, _socket, _addr, _port, _timeout);
 	// Set file
 	_file = file;
 	// Set run
@@ -62,7 +65,6 @@ public class UDPFClientSide extends Thread {
 	//_timeout = new UDPFTimeout();
 	//_timeout.addObserver(this);
 
-	_timeout = new UDPFRTT();
     }
 
     public void run() {
@@ -84,7 +86,7 @@ public class UDPFClientSide extends Thread {
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		    _socket.receive(receivePacket);
-		    _timeout.addTime(System.currentTimeMillis() - _time);
+
 		    /* Decode Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
 		    Debug.dumpPackageReceived(receiveDatagram.getType().name());
@@ -105,6 +107,7 @@ public class UDPFClientSide extends Thread {
 			    case ACK:
 				/* Confirm package received. */
 				_confirmed++;
+				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				// if all confirmed or no more to be confirmed
 				if (_confirmed == _sent) {				   
 				    if (_exiting <= _sent) {

@@ -13,3 +13,4 @@
 /code/UDPFClient/dist/
 *.aux
 *.log
+tmp_*

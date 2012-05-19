@@ -23,6 +23,7 @@ public class UDPFSend extends Thread {
     private int _port;
     private DatagramSocket _socket;
     
+    private UDPFRTT _rtt;
     private UDPFDatabase _db;
     
     private boolean _run;
@@ -33,7 +34,18 @@ public class UDPFSend extends Thread {
         _run = true;
         _addr = addr;
         _port = port;
+	_rtt = null;
     }
+
+    public UDPFSend(UDPFDatabase db, DatagramSocket socket, InetAddress addr, int port, UDPFRTT rtt) {
+        _socket = socket;
+        _db = db;
+        _run = true;
+        _addr = addr;
+        _port = port;
+	_rtt = rtt;
+    }
+
 
     @Override
     public void run() {
@@ -45,6 +57,8 @@ public class UDPFSend extends Thread {
                 send_info = Converter.objectToBytes(tmp);
                 _socket.send(new DatagramPacket(send_info, send_info.length, _addr, _port));
 		Debug.dumpPackageSent(""+tmp.getType());
+		if(_rtt != null)
+		    _rtt.addSentTime(System.currentTimeMillis(), tmp.getSeqNum());
                 i++;
             }
         } catch (InterruptedException ex) {

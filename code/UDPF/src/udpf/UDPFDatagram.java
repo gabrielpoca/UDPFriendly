@@ -27,9 +27,10 @@ public class UDPFDatagram implements Serializable {
         FIN,
         FIN_ACK
     }
-    UDPF_HEADER_TYPE _type;
-    long _seq_num;
-    byte[] _data;
+    
+    private UDPF_HEADER_TYPE _type;
+    private long _seq_num;
+    private byte[] _data;
 
     public UDPFDatagram() {
         _type = UDPF_HEADER_TYPE.INFO;
