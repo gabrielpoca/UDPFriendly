@@ -67,28 +67,25 @@ public class UDPFClientSide extends Thread {
 
     public void run() {
 	try {
-	    /* Start timeout. */
-	    //Thread time = new Thread(_timeout);
-	    //time.start();
 	    /* Start send. */
 	    Thread t = new Thread(_send);
 	    t.start();
 	    /* Send SYN message and wait SYN_ACK. */
 	    putStartDatagram();
-	    send();
-	    // start counting time.
-	    _time = System.currentTimeMillis();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
+	    send();
+	    // start rtt count.
+	    _time = System.currentTimeMillis();
 	    while (_run) {
 		try {
 		    /* Update Timeout. */
-		    _socket.setSoTimeout((int)_timeout.getTimeout());
+		    _socket.setSoTimeout((int) _timeout.getTimeout());
 		    /* Wait Package. */
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		    _socket.receive(receivePacket);
 		    _timeout.addTime(System.currentTimeMillis() - _time);
-		    /* Process Package. */
+		    /* Decode Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
 		    Debug.dumpPackageReceived(receiveDatagram.getType().name());
 		    /* if waiting type is correct or none is waiting. */
@@ -106,15 +103,17 @@ public class UDPFClientSide extends Thread {
 				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
 				break;
 			    case ACK:
+				/* Confirm package received. */
 				_confirmed++;
-				_time = System.currentTimeMillis();
-				if (_confirmed == _timeout.getWindow() || _confirmed + _sent >= _exiting) {
+				// if all confirmed or no more to be confirmed
+				if (_confirmed == _timeout.getWindow() || _confirmed + _sent >= _exiting) {				   
 				    _confirmed = 0;
 				    if (_exiting <= _sent) {
 					_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 					putEndComunication();
 				    } else {
 					_timeout.incWindow();
+					_time = System.currentTimeMillis();
 					send();
 				    }
 				}

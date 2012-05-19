@@ -69,7 +69,7 @@ class UDPFServerReceiver extends Thread {
 		    case INFO:
 			// Store File Datagram
 			_db_file.put(data.getSeqNum(), data);
-			putACK();
+			putACK(data.getSeqNum());
 			break;
 		    case FIN:
 			putEndCommunication();
@@ -124,8 +124,10 @@ class UDPFServerReceiver extends Thread {
 	return new String(buffer);
     }
 
-    public void putACK() {
-	_db.put(new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.ACK));
+    public void putACK(long seq) {
+	UDPFDatagram tmp = new UDPFDatagram(UDPFDatagram.UDPF_HEADER_TYPE.ACK);
+	tmp.setSeqNum(seq);
+	_db.put(tmp);
     }
 
     /**
