@@ -170,8 +170,7 @@ public class UDPFServer extends Thread {
 			    InetAddress addr = receivePacket.getAddress();
 			    DatagramSocket ds = getNewDatagramSocket();
 			    if (ds != null) {
-				Debug.dump("Server: Adding client on port "+port);
-				_ports_used.add(port);
+				Debug.dump("Server: Adding client on port "+ds.getLocalPort());
 				Thread t = new Thread(new UDPFServerReceiver(ds, addr, port, _ports_used));
 				t.start();
 			    } else {
@@ -202,9 +201,11 @@ public class UDPFServer extends Thread {
 		port = PORTS_ALLOWED[i];
 	    }
 	}
-	if (!found) {
+	if (!found || port == -1) {
 	    return null;
 	} else {
+	    _ports_used.add(port);
+	    Debug.dump(port+"");
 	    return new DatagramSocket(port);
 	}
     }
