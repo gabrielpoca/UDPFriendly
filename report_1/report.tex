@@ -1,4 +1,4 @@
-\documentclass{llncs}
+\documentclass{article}
 \usepackage{times}
 % \usepackage[T1]{fontenc}
 
@@ -13,6 +13,10 @@
 \usepackage{graphicx}
 \usepackage{fancyvrb}
 \usepackage{amsmath}
+
+\usepackage{listings}
+\usepackage{color}
+\usepackage{xcolor}
 %\renewcommand{\baselinestretch}{1.5}
 
 % Para ter os objectos no sitio que se pretende com o H.
@@ -22,38 +26,54 @@
 %\usepackage{indentfirst}
 
 
+\usepackage{caption}
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox{gray}{\parbox{\textwidth}{#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white}
+
+\lstset{ %
+  basicstyle=\footnotesize,           % the size of the fonts that are used for the code
+  }
+
+
 \begin{document}
-\mainmatter
+%\mainmatter
 \title{UDP Friendly}
 
-\titlerunning{UDP Friendly}
+%\titlerunning{UDP Friendly}
 
 \author{Gabriel Poça \and Maria Alves \and Tiago Ribeiro}
 
-\authorrunning{Gabriel Poça \and Maria Alves \and Tiago Ribeiro}
+%\authorrunning{Gabriel Poça \and Maria Alves \and Tiago Ribeiro}
 
-\institute{
-University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
-e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
-}
+%\institute{
+%University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
+%e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
+%}
 
 \date{}
 \bibliographystyle{splncs}
 
 \maketitle
-%\begin{abstract}
-%\end{abstract}
+
+
+\begin{center}\small{University of Minho, Department of  Informatics, 4710-057 Braga, Portugal\\
+e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt}\end{center}
+
+
+\begin{abstract}
+Resumo do relatório.
+\end{abstract}
 
 % Introdução
 \section{Notas Iniciais}
 Este documento serve como resumo, intermédio, para acompanhamento do projecto prático de Comunicação por Computadores. São abordadas as metodologias e os conceitos adoptados.
 
-\section{Arquitectura}
-A arquitectura 
+\section{Implementação}
+Esta secção trata com maior detalhe a componente da implementação do projecto. Aqui são abordados as diferentes entidades a funcionar em cada aplicação (cliente e servidor), a implementação dos cabeçalhos, etc.
 
 \section{Comunicação}
 \subsection{Tipos de Mensagens}
-
 
 Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um mensagem \textit{INFO} tem bytes da informação a enviar e um indicador da posição da mesma. Existem três \textbf{elementos de cabeçalho}:
 
@@ -99,7 +119,43 @@ A comunicação termina quando o cliente envia a mensagem \textit{FIN}. O servid
 
 \subsection{Controlo de congestão}
 
-\subsection{Timeout e Janela}
+Quando a carga oferecida a uma rede é superior à sua capacidade acontece um congestionamento. A soluçao para este problema passa por diminuir a taxa de transmissão de dados.
+Existe um protocolo que gere essa taxa bastante bem, o TCP. E uma vez que a sua implementação foi estudada exaustivamente, acreditamos que seja possivel obter bons resultados. Como tal decidimos que o nosso controlo de congestão seguiria o modelo que o TCP utiliza.
+
+Uma das solução para fazer variar a transmissão de dados passa por implementar o mecanismo de janela dinâmica.
+
+\subsubsection{Aumentar o tamanho da janela}
+
+De cada vez que o servidor recebe um pacote, envia uma confirmação para o cliente. À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
+Aumentará para o dobro, caso o tamanho da janela seja inferior ao Threshold, caso contrário será incrementada em uma unidade.
+
+\subsubsection{Diminuir o tamanho da janela}
+
+Quando uma confirmação não chega, ou não chega a tempo ocorre um timeout. 
+O cálculo do timeout é baseado numa soma entre a média ponderada do RTT (round trip time) novo (sampleRTT) e o anterior (estimatedRTT) e quatro vezes a média ponderada do desvio padrão anterior e o novo.
+As funções a seguir apresentadas correspondem ao cálculo desses três tempo, estimatedRTT, devRTT e timeout:
+
+\lstset{language=Java,caption={Implementação do algortimo de calculo do timeout},label=Timeout}
+\begin{lstlisting}
+private long estimateRTT(long sampleRTT) {
+	long newRTT = (long) ((1 - _alpha) * 
+		_estimatedRTT + _alpha * sampleRTT);
+		_estimatedRTT = newRTT;
+	return _estimatedRTT;
+}
+
+private long calculateDevRTT(long sampleRTT) {
+	long newdevRTT = (long) ((1 - _beta) * _devRTT + 
+		_beta * (Math.abs(sampleRTT - _estimatedRTT)));
+	_devRTT = newdevRTT;
+	return _devRTT;
+}
+
+private void calculateTimeOut(long sampleRTT) {
+	_timeout = estimateRTT(sampleRTT) + 4 * calculateDevRTT(sampleRTT);
+}    
+\end{lstlisting}
+
 
 %UNCOMMENT se necessário
 %De acordo com o ilustrado na Figura~\ref{fig:controller}
