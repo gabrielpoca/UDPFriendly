@@ -43,7 +43,7 @@ public class UDPFClientSide extends Thread {
     private boolean _run;
 
     public UDPFClientSide(String file) throws SocketException, UnknownHostException {
-	
+
 	_timeout = new UDPFRTT();
 	// Start socket and database.
 	_socket = new DatagramSocket(PORT);
@@ -106,10 +106,18 @@ public class UDPFClientSide extends Thread {
 				break;
 			    case ACK:
 				/* Confirm package received. */
-				_confirmed++;
+				Debug.dumpMessage("ACK: "+receiveDatagram.getSeqNum());
+				if (receiveDatagram.getSeqNum() == _confirmed) {
+				    _confirmed++;
+				} else {
+				    Debug.dumpException("OUT OF ORDER ACK");
+				    _confirmed = (int) (receiveDatagram.getSeqNum() + 1);
+				    _timeout.setTreshold(_timeout.getWindow() / 2);
+				    _timeout.setWindow(1);
+				}
 				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				// if all confirmed or no more to be confirmed
-				if (_confirmed == _sent) {				   
+				if (_confirmed == _sent) {
 				    if (_exiting <= _sent) {
 					_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
 					putEndComunication();
@@ -130,6 +138,7 @@ public class UDPFClientSide extends Thread {
 		    }
 		} catch (SocketTimeoutException e) {
 		    Debug.dumpException("TIMEOUT EXCEPTION");
+		    _confirmed = _sent;
 		    _timeout.setTreshold(_timeout.getWindow() / 2);
 		    _timeout.setWindow(1);
 		    send();
@@ -147,12 +156,13 @@ public class UDPFClientSide extends Thread {
 
     public void send() {
 	int tmp = _exiting - _sent;
-	if(tmp > _timeout.getWindow())
+	if (tmp > _timeout.getWindow()) {
 	    tmp = _timeout.getWindow();
+	}
 	_db.send(tmp);
 	_sent += tmp;
     }
-    
+
     public void sendOne() {
 	_db.send(1);
     }
@@ -200,7 +210,7 @@ public class UDPFClientSide extends Thread {
      */
     public static void main(String[] args) {
 	try {
-	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/imagem.jpg"));
+	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/imagem2.jpg"));
 	    t.start();
 	    t.join();
 	    System.exit(0);
