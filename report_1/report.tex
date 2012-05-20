@@ -53,7 +53,21 @@ A arquitectura
 
 \section{Comunicação}
 \subsection{Tipos de Mensagens}
-Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um mensagem INFO transporta informação do documento a enviar e um indicador de sequência. Como tal existem seis tipos de mensagens:
+
+
+Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um mensagem \textit{INFO} tem bytes da informação a enviar e um indicador da posição da mesma. Existem três \textbf{elementos de cabeçalho}:
+
+
+\begin{description}
+	\item[Tipo] 	Tipo da mensagem (os diferentes tipos são apresentados a seguir).
+	\item[Posição] 	Numero que representa a posição do pacote numa sequência que constitui a informação enviada.
+	\item[Data] 	Informação a enviar por pacote.
+\end{description}
+
+
+Diferentes tipos de mensagens preenchem diferentes elementos de informação, mensagens de \textit{ACK} não enviam bytes de informação. Existem os seguintes tipos de mensagem:
+
+
 \begin{description}
 	\item[SYN] Mensagem inicial no establecer da comunicação com o servidor.
 	\item[SYN\_ACK] Mensagem de confirmação de SYN.
@@ -62,17 +76,28 @@ Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um m
 	\item[FIN] Mensagem de final de comunicação.
 	\item[FIN\_ACK] Mensagem de confirmação da recepção de FIN.
 \end{description}
-No processo de comunicação entre cliente e servidor o primeiro apenas comunica com mensagens \textit{SYN}, \textit{INFO} e \textit{FIN} e o servidor com as restantes.
+
+
+No processo de comunicação do cliente com o servidor o primeiro apenas comunica com mensagens \textit{SYN}, \textit{INFO} e \textit{FIN} e o outro com as restantes. Mas tal será esclarecido na secção sobre protocolo.
+
 
 \subsection{Protocolo}
-\subsubsection{Handshake}
-A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo client. O servidor recebe a mensagem e responde com \textit{SYN\_ACK}. Através da mensagem \textit{SYN\_ACK} o cliente é informado da porta para a qual deverá continuar a comunicação. Establecida a comunicação o cliente pode enviar um documento e terminar a comunicação.
+A comunicação pode ser dividida em três componentes: establecer da comunicação, envio da informação e terminar da comunicação. As secções abaixo explicam as mesmas.
 
-\subsubsection{Upload}
-O \textit{upload} é realiza-se através de mensagens \textit{INFO}. Cada mensagem é constituida por informação (conjunto de bytes a enviar para o servidor) e um indicador da posição da mesma informação numa sequencia que constitui o documento.
+\subsubsection{Establecer da comunicação}
+A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo client. O servidor recebe a mensagem e responde com \textit{SYN\_ACK}. Da mensagem \textit{SYN\_ACK} o cliente retira informação quanto à porta para a qual deverá continuar a comunicação, tal é necessário uma vez que se trata de aplicação para multiplos servidores, caso contrário não haveria necessidade de mudança de porta. Establecida a comunicação o cliente pode enviar informação e terminar a comunicação.
+
+
+\textbf{INSERIR GRÁFICO DAS PORTAS}
+
+
+\subsubsection{Envio da informação}
+O \textit{upload} de informação para o servidor é realizado através de mensagens \textit{INFO}. Cada mensagem é constituida por informação (conjunto de bytes a enviar para o servidor) e um indicador da posição da mesma informação numa sequencia que permite reconstituir a informação no servidor.
 
 \subsubsection{Terminar}
-A comunicação termina quando o cliente envia a mensagem \textit{FIN} à qual o servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
+A comunicação termina quando o cliente envia a mensagem \textit{FIN}. O servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
+
+\subsection{Controlo de congestão}
 
 \subsection{Timeout e Janela}
 

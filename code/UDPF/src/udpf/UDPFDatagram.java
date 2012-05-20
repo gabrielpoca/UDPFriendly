@@ -16,8 +16,6 @@ import utils.Converter;
  */
 public class UDPFDatagram implements Serializable {
 
-    public static final int MTU = 512;
-
     public enum UDPF_HEADER_TYPE {
 
         INFO, /* pacote com informaçao */
