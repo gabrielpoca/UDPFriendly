@@ -62,12 +62,22 @@ e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
 
 
 \begin{abstract}
-Resumo do relatório.
+ O UDP (User Datagram Protocol) é um protocolo simples da camada de transporte. Este protocolo faz a entrega de mensagens independentes, os datagramas, entre processos ou aplicações em sistemas de host. O protocolo UDP carateriza-se por permitir uma transmissão de dados não fiável, não possuindo qualquer mecanismo de controlo de fluxo e controlo de congestão. Não permitindo ainda disponibiliza um controlo de erros diminuto e opcional, é mais adequado para suportar tráfego 
+aplicacional onde uma latência baixa é conveniente. O UDP é utilizado por exemplo em jogos interativos, audio e video streaming. Para que nos seja permitido regular o débito dos dados a transmitir em função dos níveis de carga da rede foi necessário desenvolver uma camada que complementá-se o potocolo UDP.
 \end{abstract}
 
 % Introdução
-\section{Notas Iniciais}
-Este documento serve como resumo, intermédio, para acompanhamento do projecto prático de Comunicação por Computadores. São abordadas as metodologias e os conceitos adoptados.
+\section{Introdução}
+  A construção da camada complementar ao protocolo UDP deve acentar em propositos definidos, sendo eles: 
+\begin{itemize}
+	\item Providenciar o estabelecimento e termino fiável de uma conexão;
+	\item Oferecer um serviço de transporte de dados eficiente, em que os dados a transmitir são vistoscomo uma stream de pacotes (512Bytes), controlada por um mecanismo de janela orientado ao pacote;
+	\item Implementar um mecanismo que ajuste a taxa de transmissão de envio de pacotes com base na perda de pacotes;
+	\item Para simplificar a detecção da perda, cada pacote recebido  pode ser individualmente confirmado;
+	\item Continuar a ser um protocolo de transporte não fiável, i.e. sem incluir qualquer tipo de retransmissão;
+	\item Continuar a ser um protocolo de transporte que não garante a entrega ordenada.
+\end{itemize}
+Foi desenvolvida então essa camada que mais à frente se carateriza.
 
 \section{Implementação}
 Esta secção trata com maior detalhe a componente da implementação do projecto. Aqui são abordados as diferentes entidades a funcionar em cada aplicação (cliente e servidor), a implementação dos cabeçalhos, etc.
@@ -124,7 +134,7 @@ Estamos perante congestionamento quando a carga entregue a uma rede é superior 
 
 \subsection{Aumentar o tamanho da janela}
 
-A cada pacote recebido no servidor é devolvida uma confirmação ao cliente. À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
+Por cada pacote recebido no servidor é devolvida uma confirmação ao cliente. São agurdados um numero de confirmações igual ao tamanho da janela, ao fim das quais a mesma aumenta. Em caso de \textit{timeout} ou  À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
 Aumentará para o dobro, caso o tamanho da janela seja inferior ao Threshold, caso contrário será incrementada em uma unidade.
 
 \subsection{Diminuir o tamanho da janela}
@@ -165,6 +175,9 @@ private void calculateTimeOut(long sampleRTT) {
 %\end{center}
 %\caption{\label{fig:controller}Architecture of the unified QoS metric fuzzy controller.}
 %\end{figure} 
+
+\subsection{Conclusão}
+Ao longo deste trabalho fomos encontrando algumas dificuldades, sendo estas ultrapassadas. Sendo assim possível concluir o mesmo. 
 
 
 \end{document}

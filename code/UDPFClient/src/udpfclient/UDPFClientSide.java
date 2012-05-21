@@ -26,13 +26,14 @@ public class UDPFClientSide extends Thread {
     public static final int BUFFER_SIZE = 512;
     public static final int PORT = 9998;
     private UDPFRTT _timeout;
-    private long _time;
+
     /* Server Information. */
     private InetAddress _addr;
     private int _port;
     int _exiting;
     int _sent;
     int _confirmed;
+    
 
     /* Local variables. */
     private DatagramSocket _socket;
@@ -76,8 +77,6 @@ public class UDPFClientSide extends Thread {
 	    putStartDatagram();
 	    _wait_type = UDPFDatagram.UDPF_HEADER_TYPE.SYN_ACK.ordinal();
 	    sendOne();
-	    // start rtt count.
-	    _time = System.currentTimeMillis();
 	    while (_run) {
 		try {
 		    /* Update Timeout. */
@@ -100,7 +99,6 @@ public class UDPFClientSide extends Thread {
 				/* Send File. */
 				putFile();
 				send();
-				_time = System.currentTimeMillis();
 				/* Wait for ack and start timeout. */
 				_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.ACK.ordinal();
 				break;
@@ -111,9 +109,11 @@ public class UDPFClientSide extends Thread {
 				    _confirmed++;
 				} else {
 				    Debug.dumpException("OUT OF ORDER ACK");
-				    _confirmed = (int) (receiveDatagram.getSeqNum() + 1);
-				    _timeout.setTreshold(_timeout.getWindow() / 2);
-				    _timeout.setWindow(1);
+				    if(receiveDatagram.getSeqNum() > _confirmed) {
+					_confirmed = (int) (receiveDatagram.getSeqNum() + 1);
+					_timeout.setTreshold(_timeout.getWindow() / 2);
+					_timeout.setWindow(1);
+				    }
 				}
 				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				// if all confirmed or no more to be confirmed
@@ -124,7 +124,6 @@ public class UDPFClientSide extends Thread {
 					sendOne();
 				    } else {
 					_timeout.incWindow();
-					_time = System.currentTimeMillis();
 					send();
 				    }
 				}
