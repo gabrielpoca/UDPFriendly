@@ -1,9 +1,10 @@
 package udpfclient;
 
+import java.io.BufferedWriter;
 import udpf.UDPFRTT;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.net.UnknownHostException;
-import java.util.Observable;
 import udpf.UDPFSend;
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -11,13 +12,12 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
-import java.util.Observer;
+import java.util.ArrayList;
+import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import udpf.UDPFDatabase;
 import udpf.UDPFDatabaseWindow;
 import udpf.UDPFDatagram;
-import udpf.UDPFTimeout;
 import utils.Converter;
 import utils.Debug;
 
@@ -33,8 +33,6 @@ public class UDPFClientSide extends Thread {
     int _exiting;
     int _sent;
     int _confirmed;
-    
-
     /* Local variables. */
     private DatagramSocket _socket;
     private UDPFDatabaseWindow _db;
@@ -104,16 +102,17 @@ public class UDPFClientSide extends Thread {
 				break;
 			    case ACK:
 				/* Confirm package received. */
-				Debug.dumpMessage("ACK: "+receiveDatagram.getSeqNum());
+				Debug.dumpMessage("ACK: " + receiveDatagram.getSeqNum());
 				if (receiveDatagram.getSeqNum() == _confirmed) {
 				    _confirmed++;
 				} else {
 				    Debug.dumpException("OUT OF ORDER ACK");
-				    if(receiveDatagram.getSeqNum() > _confirmed) {
+				    if (receiveDatagram.getSeqNum() > _confirmed) {
 					_confirmed = (int) (receiveDatagram.getSeqNum() + 1);
-					_timeout.setTreshold(_timeout.getWindow() / 2);
-					_timeout.setWindow(1);
 				    }
+				    _timeout.setTreshold(_timeout.getWindow() / 2);
+				    _timeout.setWindow(1);
+
 				}
 				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				// if all confirmed or no more to be confirmed
@@ -141,16 +140,61 @@ public class UDPFClientSide extends Thread {
 		    _timeout.setTreshold(_timeout.getWindow() / 2);
 		    _timeout.setWindow(1);
 		    send();
+		    if(_sent >= _exiting)
+			_run = false;
 		}
 	    }
 	    Debug.dumpMessage("Ending client!");
 	    _send.stopSend();
+	    dumpTimes();
 	    //_timeout.stop();
 	} catch (ClassNotFoundException ex) {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (IOException ex) {
 	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
+    }
+
+    public void dumpTimes() {
+	Debug.dumpMessage("Dump Log to File");
+	TreeMap<Long, Long> sent = _timeout.getSentDB();
+	TreeMap<Long, Long> recv = _timeout.getRecvDB();
+
+	TreeMap<Long, ArrayList<String>> sorted = new TreeMap<Long, ArrayList<String>>();
+
+	// for each key
+	for (Long entry : sent.keySet()) {
+	    // if the value doesnt exist
+	    if (!sorted.containsKey(sent.get(entry))) // create the value
+	    {
+		sorted.put(sent.get(entry), new ArrayList<String>());
+	    }
+	    sorted.get(sent.get(entry)).add("S"+entry);
+	}
+
+	// for each key
+	for (Long entry : recv.keySet()) {
+	    // if the value doesnt exist
+	    if (!sorted.containsKey(recv.get(entry))) // create the value
+	    {
+		sorted.put(recv.get(entry), new ArrayList<String>());
+	    }
+	    sorted.get(recv.get(entry)).add("R"+entry);
+	}
+
+	try {
+	    BufferedWriter out = new BufferedWriter(new FileWriter("outfilename"));
+	    for (Long entry : sorted.keySet()) {
+		out.write(entry.toString() + ": ");
+		for (String entry2 : sorted.get(entry)) {
+		    out.write(entry2.toString() + " ");
+		}
+		out.write("\n");
+	    }
+	    out.close();
+	} catch (IOException e) {
+	}
+
     }
 
     public void send() {
