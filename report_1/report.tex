@@ -117,19 +117,17 @@ O \textit{upload} de informação para o servidor é realizado através de mensa
 \subsubsection{Terminar}
 A comunicação termina quando o cliente envia a mensagem \textit{FIN}. O servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
 
-\subsection{Controlo de congestão}
 
-Quando a carga oferecida a uma rede é superior à sua capacidade acontece um congestionamento. A soluçao para este problema passa por diminuir a taxa de transmissão de dados.
-Existe um protocolo que gere essa taxa bastante bem, o TCP. E uma vez que a sua implementação foi estudada exaustivamente, acreditamos que seja possivel obter bons resultados. Como tal decidimos que o nosso controlo de congestão seguiria o modelo que o TCP utiliza.
+\section{Controlo de congestão}
+Estamos perante congestionamento quando a carga entregue a uma rede é superior à capacidade da mesma. Neste tipo de situação deve ser dominuida a taxa de transmissão.
+É sabido que a implementação do protocolo TCP consegue uma boa gestão de conegestionamento, como tal, após estudo da mesma, acreditamos que permite os melhores resultados. Como tal adoptamos o modelo de controlo de congestão que o TCP utiliza. A ideia passa por trabalhar com uma janela dinâmica.
 
-Uma das solução para fazer variar a transmissão de dados passa por implementar o mecanismo de janela dinâmica.
+\subsection{Aumentar o tamanho da janela}
 
-\subsubsection{Aumentar o tamanho da janela}
-
-De cada vez que o servidor recebe um pacote, envia uma confirmação para o cliente. À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
+A cada pacote recebido no servidor é devolvida uma confirmação ao cliente. À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
 Aumentará para o dobro, caso o tamanho da janela seja inferior ao Threshold, caso contrário será incrementada em uma unidade.
 
-\subsubsection{Diminuir o tamanho da janela}
+\subsection{Diminuir o tamanho da janela}
 
 Quando uma confirmação não chega, ou não chega a tempo ocorre um timeout. 
 O cálculo do timeout é baseado numa soma entre a média ponderada do RTT (round trip time) novo (sampleRTT) e o anterior (estimatedRTT) e quatro vezes a média ponderada do desvio padrão anterior e o novo.
@@ -152,7 +150,8 @@ private long calculateDevRTT(long sampleRTT) {
 }
 
 private void calculateTimeOut(long sampleRTT) {
-	_timeout = estimateRTT(sampleRTT) + 4 * calculateDevRTT(sampleRTT);
+	_timeout = estimateRTT(sampleRTT) + 
+		4 * calculateDevRTT(sampleRTT);
 }    
 \end{lstlisting}
 
