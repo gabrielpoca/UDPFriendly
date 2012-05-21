@@ -44,7 +44,11 @@ public class UDPFRTT {
 
     public void addRecvTime(long time, long seq) {
 	_db_recv.put(seq, time);
+	try {
 	calculateTimeOut(time - _db_sent.get(seq));
+	} catch (NullPointerException e) {
+	    
+	}
     }
 
     public void addSentTime(long time, long seq) {

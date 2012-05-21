@@ -83,7 +83,6 @@ public class UDPFClientSide extends Thread {
 		    byte[] buffer = new byte[BUFFER_SIZE];
 		    DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
 		    _socket.receive(receivePacket);
-
 		    /* Decode Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
 		    Debug.dumpPackageReceived(receiveDatagram.getType().name());
@@ -102,17 +101,15 @@ public class UDPFClientSide extends Thread {
 				break;
 			    case ACK:
 				/* Confirm package received. */
-				Debug.dumpMessage("ACK: " + receiveDatagram.getSeqNum());
 				if (receiveDatagram.getSeqNum() == _confirmed) {
 				    _confirmed++;
 				} else {
 				    Debug.dumpException("OUT OF ORDER ACK");
 				    if (receiveDatagram.getSeqNum() > _confirmed) {
-					_confirmed = (int) (receiveDatagram.getSeqNum() + 1);
+					_confirmed = (int) (receiveDatagram.getSeqNum() + 2);
+					_timeout.setTreshold(_timeout.getWindow() / 2);
+					_timeout.setWindow(1);
 				    }
-				    _timeout.setTreshold(_timeout.getWindow() / 2);
-				    _timeout.setWindow(1);
-
 				}
 				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				// if all confirmed or no more to be confirmed
@@ -137,11 +134,16 @@ public class UDPFClientSide extends Thread {
 		} catch (SocketTimeoutException e) {
 		    Debug.dumpException("TIMEOUT EXCEPTION");
 		    _confirmed = _sent;
-		    _timeout.setTreshold(_timeout.getWindow() / 2);
-		    _timeout.setWindow(1);
-		    send();
-		    if(_sent >= _exiting)
+		    if (_exiting <= _sent) {
+			_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
+			putEndComunication();
+			sendOne();
 			_run = false;
+		    } else {
+			_timeout.setTreshold(_timeout.getWindow() / 2);
+			_timeout.setWindow(1);
+			send();
+		    }
 		}
 	    }
 	    Debug.dumpMessage("Ending client!");
@@ -162,6 +164,7 @@ public class UDPFClientSide extends Thread {
 
 	TreeMap<Long, ArrayList<String>> sorted = new TreeMap<Long, ArrayList<String>>();
 
+	/* put sent packages */
 	// for each key
 	for (Long entry : sent.keySet()) {
 	    // if the value doesnt exist
@@ -169,9 +172,10 @@ public class UDPFClientSide extends Thread {
 	    {
 		sorted.put(sent.get(entry), new ArrayList<String>());
 	    }
-	    sorted.get(sent.get(entry)).add("S"+entry);
+	    sorted.get(sent.get(entry)).add("S" + entry);
 	}
 
+	/* put recv packages */
 	// for each key
 	for (Long entry : recv.keySet()) {
 	    // if the value doesnt exist
@@ -179,7 +183,17 @@ public class UDPFClientSide extends Thread {
 	    {
 		sorted.put(recv.get(entry), new ArrayList<String>());
 	    }
-	    sorted.get(recv.get(entry)).add("R"+entry);
+	    sorted.get(recv.get(entry)).add("R" + entry);
+	}
+
+	/* put exception messages */
+	for (Long entry : Debug.EXCEPTION_DUMP.keySet()) {
+	    if (!sorted.containsKey(entry)) {
+		sorted.put(entry, new ArrayList<String>());
+	    }
+	    for (String entry2 : Debug.EXCEPTION_DUMP.get(entry)) {
+		sorted.get(entry).add(entry2);
+	    }
 	}
 
 	try {

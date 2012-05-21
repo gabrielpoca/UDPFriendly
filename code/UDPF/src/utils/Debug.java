@@ -4,11 +4,16 @@
  */
 package utils;
 
+import java.util.ArrayList;
+import java.util.TreeMap;
+
 /**
  *
  * @author gabrielpoca
  */
 public class Debug {
+    
+    public static TreeMap<Long, ArrayList<String>> EXCEPTION_DUMP = new TreeMap<Long, ArrayList<String>>();
 
     public static final String ANSI_RESET = "\u001B[0m";
     public static final String ANSI_BLACK = "\u001B[30m";
@@ -37,6 +42,10 @@ public class Debug {
     }  
     
     public static void dumpException(String s) {
+	long time = System.currentTimeMillis();
+	if(!EXCEPTION_DUMP.containsKey(time))
+	    EXCEPTION_DUMP.put(time, new ArrayList<String>());
+	EXCEPTION_DUMP.get(time).add(s);
 	System.out.println(ANSI_RED+"EXCE:: " + s);
     }
 }
