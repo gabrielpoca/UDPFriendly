@@ -103,15 +103,17 @@ public class UDPFClientSide extends Thread {
 				/* Confirm package received. */
 				if (receiveDatagram.getSeqNum() == _confirmed) {
 				    _confirmed++;
+				    _timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
 				} else {
 				    Debug.dumpException("OUT OF ORDER ACK");
 				    if (receiveDatagram.getSeqNum() > _confirmed) {
 					_confirmed = (int) (receiveDatagram.getSeqNum() + 2);
 					_timeout.setTreshold(_timeout.getWindow() / 2);
 					_timeout.setWindow(1);
+					
 				    }
 				}
-				_timeout.addRecvTime(System.currentTimeMillis(), receiveDatagram.getSeqNum());
+				
 				// if all confirmed or no more to be confirmed
 				if (_confirmed == _sent) {
 				    if (_exiting <= _sent) {
