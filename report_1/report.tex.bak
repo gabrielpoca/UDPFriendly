@@ -63,7 +63,7 @@ e-mail: \{a56974,a54807,a54752\}@alunos.uminho.pt
 
 \begin{abstract}
  O UDP (User Datagram Protocol) é um protocolo simples da camada de transporte. Este protocolo faz a entrega de mensagens independentes, denominadas por datagramas, entre processos ou aplicações em sistemas de host.
- O protocolo UDP caracteriza-se por permitir uma transmissão de dados não fiável, uma vez que não possui qualquer mecanismo de controlo de fluxo e controlo de congestão. 
+ O protocolo UDP carateriza-se por permitir uma transmissão de dados não fiável, uma vez que não possui qualquer mecanismo de controlo de fluxo e controlo de congestão. 
 \end{abstract}
 
 % Introdução
@@ -74,7 +74,7 @@ O socket UDP é identificado através de dois números: endereço IP destino, e 
 Os Datagramas com diferentes endereços IP origem e/ou portas origem podem ser redireccionados para o mesmo socket.
 Caso o recurso a broadcasting e multicasting sejam necessários, o UDP deverá necessariamente ser utilizado. Este protocolo não perde tempo com criação ou destruição de conexões. Durante uma conexão, o UDP troca apenas 2 pacotes. Por isto, aplicações que encaixam num modelo de pergunta-resposta também são fortes candidatas a usar UDP. Entretanto, pode ser necessário implementar algoritmos de timeouts, acks e, no mínimo, retransmissão.
 Um maiores problemas deste protocolo é não ser amigável para o funcionamento da rede uma vez que tem um comportamento egoísta ao não ajustar o débito de envio face à largura de banda disponível.
-Para que nos seja permitido regular o débito dos dados a transmitir em função dos níveis de carga da rede foi necessário desenvolver uma camada que complementasse o protocolo UDP.
+Para que nos seja permitido regular o débito dos dados a transmitir em função dos níveis de carga da rede foi necessário desenvolver uma camada que complementasse o potocolo UDP.
 
 \section{Objectivos}
   A construção da camada complementar ao protocolo UDP deve acentar nos seguintes propósitos definidos:
@@ -91,7 +91,7 @@ Para que nos seja permitido regular o débito dos dados a transmitir em função
 \section{Comunicação}
 \subsection{Tipos de Mensagens}
 
-Cada mensagem transporta diferentes elementos de informação, por exemplo, um mensagem \textit{INFO} tem bytes da informação a enviar e um indicador da posição da mesma. Existem três \textbf{elementos de cabeçalho}:
+Cada mensagem tranpsorta diferentes elementos de informação, por exemplo, um mensagem \textit{INFO} tem bytes da informação a enviar e um indicador da posição da mesma. Existem três \textbf{elementos de cabeçalho}:
 
 
 \begin{description}
@@ -105,7 +105,7 @@ Diferentes tipos de mensagens preenchem diferentes elementos de informação, me
 
 
 \begin{description}
-	\item[SYN] Mensagem inicial no estabelecer da comunicação com o servidor.
+	\item[SYN] Mensagem inicial no establecer da comunicação com o servidor.
 	\item[SYN\_ACK] Mensagem de confirmação de SYN.
 	\item[INFO] Mensagem que transporta informação sobre o documento a enviar.
 	\item[ACK] Mensagem de confirmação da recepção de uma mensagem INFO.
@@ -118,10 +118,10 @@ No processo de comunicação do cliente com o servidor o primeiro apenas comunic
 
 
 \subsection{Protocolo}
-A comunicação pode ser dividida em três componentes: estabelecer da comunicação, envio da informação e terminar da comunicação. As secções abaixo explicam as mesmas.
+A comunicação pode ser dividida em três componentes: establecer da comunicação, envio da informação e terminar da comunicação. As secções abaixo explicam as mesmas.
 
-\subsubsection{Estabelecer da comunicação}
-A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo cliente. O servidor recebe a mensagem e responde com \textit{SYN\_ACK}. Da mensagem \textit{SYN\_ACK} o cliente retira informação quanto à porta para a qual deverá continuar a comunicação, tal é necessário uma vez que se trata de aplicação para múltiplos servidores, caso contrário não haveria necessidade de mudança de porta. Estabelecida a comunicação o cliente pode enviar informação e terminar a comunicação.
+\subsubsection{Establecer da comunicação}
+A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo client. O servidor recebe a mensagem e responde com \textit{SYN\_ACK}. Da mensagem \textit{SYN\_ACK} o cliente retira informação quanto à porta para a qual deverá continuar a comunicação, tal é necessário uma vez que se trata de aplicação para multiplos servidores, caso contrário não haveria necessidade de mudança de porta. Establecida a comunicação o cliente pode enviar informação e terminar a comunicação.
 
 \begin{figure}
 \begin{center}
@@ -132,19 +132,19 @@ A comunicação tem inicio com o envio da mensagem \textit{SYN} pelo cliente. O 
 
 \newpage
 \subsubsection{Envio da informação}
-O \textit{upload} de informação para o servidor é realizado através de mensagens \textit{INFO}. Cada mensagem é constituída por informação (conjunto de bytes a enviar para o servidor) e um indicador da posição da mesma informação numa sequência que permite reconstituir a informação no servidor.
+O \textit{upload} de informação para o servidor é realizado através de mensagens \textit{INFO}. Cada mensagem é constituida por informação (conjunto de bytes a enviar para o servidor) e um indicador da posição da mesma informação numa sequencia que permite reconstituir a informação no servidor.
 
 \subsubsection{Terminar}
 A comunicação termina quando o cliente envia a mensagem \textit{FIN}. O servidor deve responder com \textit{FIN\_ACK} procedendo então à descodificação da informação recebida.
 
 
 \section{Controlo de congestão}
-Estamos perante congestionamento quando a carga entregue a uma rede é superior à capacidade da mesma. Neste tipo de situação deve ser diminuída a taxa de transmissão.
-É sabido que a implementação do protocolo TCP consegue uma boa gestão de congestionamento, como tal, após estudo da mesma, acreditamos que permite os melhores resultados. Como tal adoptamos o modelo de controlo de congestão que o TCP utiliza. A ideia passa por trabalhar com uma janela dinâmica.
+Estamos perante congestionamento quando a carga entregue a uma rede é superior à capacidade da mesma. Neste tipo de situação deve ser dominuida a taxa de transmissão.
+É sabido que a implementação do protocolo TCP consegue uma boa gestão de conegestionamento, como tal, após estudo da mesma, acreditamos que permite os melhores resultados. Como tal adoptamos o modelo de controlo de congestão que o TCP utiliza. A ideia passa por trabalhar com uma janela dinâmica.
 
 \subsection{Aumentar o tamanho da janela}
 
-Por cada pacote recebido no servidor é devolvida uma confirmação ao cliente. São aguardados um numero de confirmações igual ao tamanho da janela, ao fim das quais a mesma aumenta. Em caso de \textit{timeout} ou  À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
+Por cada pacote recebido no servidor é devolvida uma confirmação ao cliente. São agurdados um numero de confirmações igual ao tamanho da janela, ao fim das quais a mesma aumenta. Em caso de \textit{timeout} ou  À medida que essas confirmações chegarem, caso não haja timeout’s, e assim que o número de confirmações for igual ao tamanho da janela, esta aumentará.
 Aumentará para o dobro, caso o tamanho da janela seja inferior ao Threshold, caso contrário será incrementada em uma unidade.
 
 \subsection{Diminuir o tamanho da janela}
@@ -187,7 +187,7 @@ private void calculateTimeOut(long sampleRTT) {
 %\end{figure} 
 
 \subsection{Conclusão}
-Neste projeto foi necessária a construção de uma camada adicional ao protocolo UDP para que nos fosse possível resolver o problema proposto. 
+Neste projeto foi necessária a contrução de uma camda adicional ao protocolo UDP para que nos fosse possível resolver o problema proposto. 
 Após a elaboração deste projeto foi-nos possível observar como é possível regula o débito dos dados a transmitir em função dos níveis de congestão da rede.
 Ao longo deste trabalho fomos encontrando algumas dificuldades, sendo estas ultrapassadas. A maior dificuldade encontrada foi controlar a falta de ordem de chegada de confirmações.
 Pode-se então concluir que o projeto foi bem elaborado e foi concluído com sucesso.
