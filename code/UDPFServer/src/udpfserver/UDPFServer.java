@@ -95,7 +95,7 @@ class UDPFServerReceiver extends Thread {
 	}	
 	File file;
 	try {
-	    file = Converter.bytestoFile(output.toByteArray(), "tmp_"+System.currentTimeMillis()+"_"+_socket.getLocalPort());
+	    file = Converter.bytestoFile(output.toByteArray(), "tmp/tmp_"+System.currentTimeMillis()+"_"+_socket.getLocalPort());
 	    //Debug.dump(readFileAsString(file.getPath()));
 	} catch (FileNotFoundException ex) {
 	    Logger.getLogger(UDPFServerReceiver.class.getName()).log(Level.SEVERE, null, ex);
@@ -147,7 +147,7 @@ class UDPFServerReceiver extends Thread {
 
 public class UDPFServer extends Thread {
 
-    private final int[] PORTS_ALLOWED = {9997, 9996, 9995};
+    private final int[] PORTS_ALLOWED = {9997, 9996, 9995, 9994};
     private ArrayList<Integer> _ports_used;
 
     public UDPFServer() {

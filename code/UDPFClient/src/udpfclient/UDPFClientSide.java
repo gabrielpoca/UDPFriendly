@@ -41,11 +41,11 @@ public class UDPFClientSide extends Thread {
     int _wait_type; // next datagram type. -1 for none.
     private boolean _run;
 
-    public UDPFClientSide(String file) throws SocketException, UnknownHostException {
+    public UDPFClientSide(String file, int port) throws SocketException, UnknownHostException {
 
 	_timeout = new UDPFRTT();
 	// Start socket and database.
-	_socket = new DatagramSocket(PORT);
+	_socket = new DatagramSocket(port);
 	_db = new UDPFDatabaseWindow();
 	// Set send
 	_addr = InetAddress.getByName("localhost");
@@ -110,10 +110,10 @@ public class UDPFClientSide extends Thread {
 					_confirmed = (int) (receiveDatagram.getSeqNum() + 2);
 					_timeout.setTreshold(_timeout.getWindow() / 2);
 					_timeout.setWindow(1);
-					
+
 				    }
 				}
-				
+
 				// if all confirmed or no more to be confirmed
 				if (_confirmed == _sent) {
 				    if (_exiting <= _sent) {
@@ -153,9 +153,7 @@ public class UDPFClientSide extends Thread {
 	    dumpTimes();
 	    //_timeout.stop();
 	} catch (ClassNotFoundException ex) {
-	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (IOException ex) {
-	    Logger.getLogger(UDPFMain.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
 
@@ -199,7 +197,7 @@ public class UDPFClientSide extends Thread {
 	}
 
 	try {
-	    BufferedWriter out = new BufferedWriter(new FileWriter("outfilename"));
+	    BufferedWriter out = new BufferedWriter(new FileWriter("tmp/tmp_log_" + System.currentTimeMillis()));
 	    for (Long entry : sorted.keySet()) {
 		out.write(entry.toString() + ": ");
 		for (String entry2 : sorted.get(entry)) {
@@ -269,16 +267,30 @@ public class UDPFClientSide extends Thread {
      */
     public static void main(String[] args) {
 	try {
-	    Thread t = new Thread(new UDPFClientSide("/Users/gabrielpoca/Projects/UDPFriendly/code/imagem2.jpg"));
+	    String file = "imagem.jpg";
+	    String port = "9998";
+	    
+	    if (args.length >= 1) {
+		if (args[0] != null) {
+		    file = args[0];
+		}
+	    }
+
+	    if (args.length >= 2) {
+		if (args[1] != null) {
+		    port = args[1];
+		}
+	    }
+	    
+	    Debug.dumpMessage("Sending file "+file);
+
+	    Thread t = new Thread(new UDPFClientSide(file, Integer.valueOf(port)));
 	    t.start();
 	    t.join();
 	    System.exit(0);
 	} catch (SocketException ex) {
-	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (UnknownHostException ex) {
-	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	} catch (InterruptedException ex) {
-	    Logger.getLogger(UDPFClient.class.getName()).log(Level.SEVERE, null, ex);
 	}
     }
 }
