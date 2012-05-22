@@ -56,7 +56,7 @@ public class UDPFSend extends Thread {
 		UDPFDatagram tmp = _db.get(i);
                 send_info = Converter.objectToBytes(tmp);
                 _socket.send(new DatagramPacket(send_info, send_info.length, _addr, _port));
-		Debug.dumpPackageSent(""+tmp.getType());
+		//Debug.dumpPackageSent(""+tmp.getType());
 		if(_rtt != null)
 		    _rtt.addSentTime(System.currentTimeMillis(), tmp.getSeqNum());
                 i++;

@@ -33,6 +33,8 @@ public class UDPFClientSide extends Thread {
     int _exiting;
     int _sent;
     int _confirmed;
+    int _lost;
+    
     /* Local variables. */
     private DatagramSocket _socket;
     private UDPFDatabaseWindow _db;
@@ -58,7 +60,7 @@ public class UDPFClientSide extends Thread {
 	// none type waiting.
 	_wait_type = -1;
 	// ACK confirmation
-	_exiting = _confirmed = _sent = 0;
+	_exiting = _confirmed = _sent = _lost = 0;
 
 	// Timeout
 	//_timeout = new UDPFTimeout();
@@ -85,7 +87,7 @@ public class UDPFClientSide extends Thread {
 		    _socket.receive(receivePacket);
 		    /* Decode Package. */
 		    UDPFDatagram receiveDatagram = (UDPFDatagram) Converter.bytesToObject(receivePacket.getData());
-		    Debug.dumpPackageReceived(receiveDatagram.getType().name());
+		    //Debug.dumpPackageReceived(receiveDatagram.getType().name());
 		    /* if waiting type is correct or none is waiting. */
 		    if (receiveDatagram.getType().ordinal() == _wait_type || _wait_type != -1) {
 			switch (receiveDatagram.getType()) {
@@ -107,10 +109,10 @@ public class UDPFClientSide extends Thread {
 				} else {
 				    Debug.dumpException("OUT OF ORDER ACK");
 				    if (receiveDatagram.getSeqNum() > _confirmed) {
-					_confirmed = (int) (receiveDatagram.getSeqNum() + 2);
+					_lost += receiveDatagram.getSeqNum() - _confirmed;
+					_confirmed = (int) (receiveDatagram.getSeqNum() + 3);
 					_timeout.setTreshold(_timeout.getWindow() / 2);
 					_timeout.setWindow(1);
-
 				    }
 				}
 
@@ -135,6 +137,7 @@ public class UDPFClientSide extends Thread {
 		    }
 		} catch (SocketTimeoutException e) {
 		    Debug.dumpException("TIMEOUT EXCEPTION");
+		    _lost += _sent - _confirmed;
 		    _confirmed = _sent;
 		    if (_exiting <= _sent) {
 			_wait_type = UDPFDatagram.UDPF_HEADER_TYPE.FIN_ACK.ordinal();
@@ -151,6 +154,8 @@ public class UDPFClientSide extends Thread {
 	    Debug.dumpMessage("Ending client!");
 	    _send.stopSend();
 	    dumpTimes();
+	    Debug.dumpMessage("Total Packages: "+_exiting);
+	    Debug.dumpMessage("Lost Packages: "+_lost);
 	    //_timeout.stop();
 	} catch (ClassNotFoundException ex) {
 	} catch (IOException ex) {
@@ -267,7 +272,7 @@ public class UDPFClientSide extends Thread {
      */
     public static void main(String[] args) {
 	try {
-	    String file = "imagem.jpg";
+	    String file = "imagem2.jpg";
 	    String port = "9998";
 	    
 	    if (args.length >= 1) {
